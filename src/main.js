@@ -67,14 +67,28 @@ class Player{
         this.sprite = scene.physics.add.sprite(100, 100, 'player');
         this.sprite.body.setSize(20, 30);
 
-        var sol = scene.add.rectangle(1500, 600, 3000, 100, 0x632800);
+        var sol = scene.add.rectangle(200, 600, 300, 100, 0x632800);
+        var beach_water = scene.add.rectangle(1350, 600, 2000, 50, 0x87CEEB);
+        //var plateForm_left = scene.add.rectangle(750, 450, 200, 20, 0x632800);
+        var plateForm_1 = scene.add.rectangle(450, 450, 200, 20, 0x632800);
+        var plateForm_2 = scene.add.rectangle(700, 350, 200, 20, 0x632800);
+        var plateForm_3 = scene.add.rectangle(850, 450, 50, 20, 0x632800);
+        var plateForm_4 = scene.add.rectangle(950, 450, 50, 20, 0x632800);
 
         //physics
         scene.physics.add.existing(rectangle);
         scene.physics.add.existing(this.sprite);
         scene.physics.add.existing(sol,true);
+        scene.physics.add.existing(plateForm_1,true);
+        scene.physics.add.existing(plateForm_2,true);
+        scene.physics.add.existing(plateForm_3,true);
+        scene.physics.add.existing(plateForm_4,true);
         scene.physics.add.collider(rectangle,sol);
         scene.physics.add.collider(this.sprite,sol);
+        scene.physics.add.collider(this.sprite,plateForm_1);
+        scene.physics.add.collider(this.sprite,plateForm_2);
+        scene.physics.add.collider(this.sprite,plateForm_3);
+        scene.physics.add.collider(this.sprite,plateForm_4);
 
         //input
         this.dKeyObject = scene.input.keyboard.addKey("d"); 
@@ -436,7 +450,8 @@ new Phaser.Game(config);
 let player;
 
 function preload() {
-    this.load.spritesheet('player', '/assets/player-Sheet.png', { frameWidth: 64, frameHeight: 64 });
+    const playerPath = `${import.meta.env.BASE_URL}assets/player-Sheet.png`;
+    this.load.spritesheet('player', playerPath, { frameWidth: 64, frameHeight: 64 });
 }
 
 function create() {
