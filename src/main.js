@@ -11,23 +11,200 @@ const COYOTE_TIME = 100; //ms
 const JUMP_START_TIME = 100; //ms
 const LANDING_TIME = 80; //ms
 const HIT_TIME = 600; //ms
-
+const JUMP_CUT_MULTIPLIER = 0.35;
 let rectangle;
-class LandingState{
-    timer = 0;
-    constructor(player){
-            this.timer = LANDING_TIME;
-            player.sprite.body.velocity.x = 0;
-    }
-    update(player, delta){
-        this.timer -= delta;
 
-        if(this.timer <= 0){
-            return "FINISHED";
+
+class MovingPlatform {
+    statrtX;
+    distance;
+    speed;
+    platform;
+    direction;
+    constructor(scene, x, y, width, height, speed, distance) {
+        this.startX = x;
+        this.distance = distance;
+        this.speed = speed;
+
+        this.platform = scene.add.rectangle(x, y, width, height, 0x632800);
+        scene.physics.add.existing(this.platform);
+
+        this.platform.body.setImmovable(true);
+        this.platform.body.setAllowGravity(false);
+
+        this.direction = 1;
+    }
+
+    update() {
+        this.platform.body.setVelocityX(this.speed * this.direction);
+
+        if (this.platform.x > this.startX + this.distance) {
+            this.direction = -1;
+        } else if (this.platform.x < this.startX - this.distance) {
+            this.direction = 1;
+        }
+    }
+}
+class RespawnState {
+    enter(player) {
+        player.sprite.setPosition(100, 100);
+        player.sprite.body.velocity.set(0, 0);
+    }
+
+    update(player) {
+        return new IdleState(player);
+    }
+}
+class DeadState {
+    timer = 0;
+    constructor(player) {
+        this.timer = HIT_TIME;
+    }
+
+    enter(player) {
+        // Stop total du contrôle
+        player.sprite.body.velocity.x = 0;
+
+        // option : petit knockback
+        player.sprite.body.velocity.y = -200;
+
+        player.sprite.body.setAllowGravity(true);
+
+        // reset inputs (optionnel mais safe)
+        player.walk = false;
+        player.backWalk = false;
+
+        // animation
+        player.sprite.anims.stop();
+        player.sprite.setFrame(15); // frame "dead"
+    }
+
+    update(player, delta) {
+        this.timer -= delta;
+        // rien → état bloqué
+
+        // option : respawn automatique
+        if (player.sprite.y > 700) {
+            return new RespawnState(player);
+        }
+    }
+}
+class JumpState{
+    constructor(player){
+        player.stateLockTimer = JUMP_START_TIME;
+
+    }
+    
+    enter(player){
+        player.sprite.body.velocity.y = JUMP_FORCE;
+        player.sprite.body.setAllowGravity(true);
+        player.sprite.anims.stop();
+        player.sprite.setFrame(10);
+
+        if (player.jumpBufferTimer > 0){
+            player.jumpBufferTimer = 0;
+            player.coyoteTimer = 0;
+        }
+    }
+
+    update(player,delta){
+        player.stateLockTimer = Math.max(0, player.stateLockTimer - delta);
+        console.log("JUMP START state lock timer: ", player.stateLockTimer);
+
+            //Transition vers fall
+            if(player.sprite.body.velocity.y >= 0) {
+                return new FallState(player);
+            }
+            
+            // CUT JUMP 
+            if (player.upJustUp && player.sprite.body.velocity.y < 0 ) {
+                player.sprite.body.velocity.y *= JUMP_CUT_MULTIPLIER; // coupe nette
+            }
+    }
+}
+class FallState{
+    constructor(player){}
+
+    enter(player){
+        player.sprite.body.setAllowGravity(true);
+    }
+
+    update(player){
+        if(player.isGrounded){
+            if (player.jumpBufferTimer > 0 && player.coyoteTimer > 0) {
+                player.jumpBufferTimer = 0;
+                return new JumpState(player);
+            }else{
+                 return new LandingState(player);
+            }
         }
     }
 }
 
+class LandingState{
+    timer = 0;
+    constructor(player){
+            this.timer = LANDING_TIME;
+    }
+
+    enter(player){
+        player.sprite.body.velocity.x *= 0.5;
+    }
+
+    update(player, delta){
+        this.timer -= delta;
+
+        if(this.timer <= 0){
+            const direction = player.walk ? 1 : player.backWalk ? -1 : 0;
+
+            if(direction !== 0){
+               return new WalkState(player);
+            }else{
+                return new IdleState(player);
+            }
+        }
+    }
+}
+
+class WalkState{
+    constructor(player){}
+    enter(){}
+
+    update(player){
+
+        const direction = player.walk ? 1 : player.backWalk ? -1 : 0;
+
+        if(direction === 0){
+            return new IdleState(player);
+        }
+
+        if(player.upJustDown){
+            return new JumpState(player);
+        }
+
+    }
+}
+class IdleState{
+    constructor(player){}
+    enter(){}
+
+    update(player){
+
+        if(player.upJustDown){
+            return new JumpState(player);
+        }
+
+        if(!player.isGrounded){
+            return new FallState(player);
+        }
+        
+        const direction = player.walk ? 1 : player.backWalk ? -1 : 0;
+
+        if(direction !== 0){
+            return new WalkState(player);
+        }
+    }
+}
 class Player{
     upJustDown;
     upJustUp;
@@ -41,9 +218,7 @@ class Player{
     dKeyObject;
     qKeyObject;
     spaceKeyObject;
-    playerState;
     stateLockTimer = 0;
-    previousState ;
     direction;
     walk;
     backWalk;
@@ -57,6 +232,7 @@ class Player{
     idleTimer = 0;
     idleFrame = 0;
     currentState;
+    plateForm_5;
 
     constructor(scene){
         //world bounds
@@ -67,14 +243,23 @@ class Player{
         this.sprite = scene.physics.add.sprite(100, 100, 'player');
         this.sprite.body.setSize(20, 30);
 
-        var sol = scene.add.rectangle(200, 600, 300, 100, 0x632800);
+        var sol = scene.add.rectangle(150, 600, 400, 100, 0x632800);
         var beach_water = scene.add.rectangle(1350, 600, 2000, 50, 0x87CEEB);
+        scene.physics.add.existing(beach_water, true);
+        scene.physics.add.overlap(this.sprite, beach_water, () => {
+            if(!(this.currentState instanceof DeadState)){
+                this.kill();
+            }
+        });
+
         //var plateForm_left = scene.add.rectangle(750, 450, 200, 20, 0x632800);
         var plateForm_1 = scene.add.rectangle(450, 450, 200, 20, 0x632800);
         var plateForm_2 = scene.add.rectangle(700, 350, 200, 20, 0x632800);
         var plateForm_3 = scene.add.rectangle(850, 450, 50, 20, 0x632800);
         var plateForm_4 = scene.add.rectangle(950, 450, 50, 20, 0x632800);
-
+        //var plateForm_5 = scene.add.rectangle(1050, 450, 50, 20, 0x632800);
+        this.plateForm_5 = new MovingPlatform(scene, 1150, 400, 100, 20, 50, 100);
+      
         //physics
         scene.physics.add.existing(rectangle);
         scene.physics.add.existing(this.sprite);
@@ -83,16 +268,18 @@ class Player{
         scene.physics.add.existing(plateForm_2,true);
         scene.physics.add.existing(plateForm_3,true);
         scene.physics.add.existing(plateForm_4,true);
+        scene.physics.add.existing(this.plateForm_5);
         scene.physics.add.collider(rectangle,sol);
         scene.physics.add.collider(this.sprite,sol);
         scene.physics.add.collider(this.sprite,plateForm_1);
         scene.physics.add.collider(this.sprite,plateForm_2);
         scene.physics.add.collider(this.sprite,plateForm_3);
         scene.physics.add.collider(this.sprite,plateForm_4);
+        scene.physics.add.collider(this.sprite,this.plateForm_5.platform);
 
         //input
-        this.dKeyObject = scene.input.keyboard.addKey("d"); 
-        this.qKeyObject = scene.input.keyboard.addKey("q");
+        this.dKeyObject = scene.input.keyboard.createCursorKeys().right; 
+        this.qKeyObject = scene.input.keyboard.createCursorKeys().left;
         this.spaceKeyObject = scene.input.keyboard.addKey("space");
         this.shiftKeyObject = scene.input.keyboard.addKey("p");
         this.hKeyObject = scene.input.keyboard.addKey("h");
@@ -102,43 +289,38 @@ class Player{
         camera.setBounds(0, 0, 3000, 600);
 
         //players state initialization
-        this.playerState = PLAYERS_STATE.IDLE;
-        this.previousState = null;
+        this.currentState = new IdleState(this);
+    }
+
+    kill () {
+        if(this.currentState instanceof DeadState) return; // déjà mort
+        this.transitionTo(new DeadState(this));
+    }
+
+    transitionTo(newState){
+        this.currentState?.exit?.(this);
+        this.currentState = newState;
+        this.currentState?.enter?.(this);
     }
 
     update(delta){
-        this.stateLockTimer = Math.max(0, this.stateLockTimer - delta);
-
-        if(this.playerState === PLAYERS_STATE.JUMP){
-            console.log("Update State Lock Timer : ", this.stateLockTimer);
-        }
         this.isGrounded = this.sprite.body.blocked.down;
 
         this.readInput();
         this.updateTimers(delta);
-        const wantedState = this.computeWantedState();
-        const eventState = this.detectEvents(wantedState);
-        
-        this.processState(wantedState, eventState);
-        this.enterState(this.playerState);
 
-        if(this.previousState !== this.playerState){
-            if(this.playerState === PLAYERS_STATE.LANDING){
-                this.currentState = new LandingState(this);
-            }
+        const nextState = this.currentState?.update(this,delta);
+        this.plateForm_5.update();
+
+        if(nextState){
+            this.transitionTo(nextState);
         }
 
-        const result = this.currentState?.update(this,delta);
-
-        if(result === "FINISHED"){
-            console.log("State Finished");
-            this.currentState = null;
-        }
+        if(this.sprite)
 
         this.applyPhysics();
         this.updateAnimation(delta);
         this.wasGrounded = this.sprite.body.blocked.down;
-        this.previousState = this.playerState;
     }
 
     readInput(){
@@ -152,72 +334,9 @@ class Player{
         this.dashJustDown = Phaser.Input.Keyboard.JustDown(this.shiftKeyObject);
         this.hitJustDown = Phaser.Input.Keyboard.JustDown(this.hKeyObject);
     }
-
-    computeWantedState(){
-        //determine wanted state
-        if(this.hitJustDown){
-            return PLAYERS_STATE.HIT;
-        }
-        if(this.dashJustDown){
-            return PLAYERS_STATE.DASH;
-        }
-        if(this.upJustDown){
-            return PLAYERS_STATE.JUMP_START;
-        }
-        if(this.wasGrounded && (this.walk || this.backWalk)){
-            return PLAYERS_STATE.WALK;
-        }
-
-        if(this.wasGrounded && !this.walk && !this.backWalk){
-            return PLAYERS_STATE.IDLE;
-        }
-
-        return false;
-    }
-
-    detectEvents(){
-        //hit detection
-        if(this.playerState === PLAYERS_STATE.HIT && this.stateLockTimer <= 0){
-            return this.isGrounded ? PLAYERS_STATE.IDLE : PLAYERS_STATE.FALL;
-        }
-
-        //dash detection
-        if(this.playerState === PLAYERS_STATE.DASH && this.stateLockTimer <= 0){
-            return this.isGrounded ? PLAYERS_STATE.IDLE : PLAYERS_STATE.FALL;
-        }
-
-        // CUT JUMP (variable jump height)
-        if ((this.playerState === PLAYERS_STATE.JUMP || this.playerState === PLAYERS_STATE.JUMP_START) && this.upJustUp && this.sprite.body.velocity.y < 0 ) {
-            return "CUT_JUMP";
-        }
-        //Jump apex detection
-        if(this.playerState ==PLAYERS_STATE.JUMP_START && this.sprite.body.velocity.y <= 0){
-            return PLAYERS_STATE.JUMP;
-        }
-        //Falling detection
-        if (this.playerState === PLAYERS_STATE.JUMP || this.playerState === PLAYERS_STATE.JUMP_START){
-            if(!this.sprite.body.blocked.down && this.sprite.body.velocity.y >= 0) {
-                //wantedState = PLAYERS_STATE.FALL;
-                return PLAYERS_STATE.FALL;
-            }
-        }
-
-        //Landing detection
-        if(!this.wasGrounded && this.isGrounded ){
-            if (this.jumpBufferTimer > 0 && this.coyoteTimer > 0) {
-                return PLAYERS_STATE.JUMP_START;
-            } else {
-            // console.log("Landing detected");
-                return PLAYERS_STATE.LANDING;
-            }
-        }
-
-        //iddle detection in grounding
-        return false;
-    }
     
     applyHorizontalMovement() {
-
+        if(this.currentState instanceof DeadState) return; // déjà mort
         this.direction = this.walk ? 1 : this.backWalk ? -1 : 0;
 
         if (this.direction === 0) {
@@ -256,60 +375,10 @@ class Player{
         }
     }
 
-    enterState(newState){
-    
-        if( this.previousState === newState )
-            return;
-        
-        switch(newState){
-            case PLAYERS_STATE.DASH:
-                this.dashDirection = this.direction !== 0 ? this.direction : this.lastDirection ;
-                this.sprite.body.velocity.x = this.dashDirection * DASH_SPEED;
-                this.sprite.body.velocity.y = 0;
-                this.sprite.body.setAllowGravity(false);
-                this.stateLockTimer = DASH_TIME;
-                console.log("DASH");
-                this.sprite.anims.stop();
-                this.sprite.setFrame(16);
-                break;
-            case PLAYERS_STATE.JUMP_START:
-                this.sprite.body.velocity.y = JUMP_FORCE;
-                this.jumpBufferTimer = 0;
-                this.coyoteTimer = 0;
-                this.stateLockTimer = JUMP_START_TIME;
-                console.log("JUMP START state lock timer: ", this.stateLockTimer);
-                this.sprite.anims.stop();
-                this.sprite.setFrame(10);
-                break;
-            case PLAYERS_STATE.JUMP:
-                this.sprite.anims.stop();
-                this.sprite.setFrame(10);
-                break;
-            case PLAYERS_STATE.LANDING:
-                console.log("LANDING");
-                this.sprite.body.velocity.x = 0;
-                this.stateLockTimer = LANDING_TIME;
-                break;
-            case PLAYERS_STATE.HIT:
-                console.log("HIT");
-                this.sprite.body.setAllowGravity(false);
-                this.sprite.body.velocity.y = 0;
-                this.sprite.body.velocity.x = 0;
-                this.stateLockTimer = HIT_TIME;
-                break;
-            case PLAYERS_STATE.IDLE:
-                this.idleFrame = 0;
-                this.idleTimer = 0;
-                this.sprite.setFrame(0);
-                break;
-            case PLAYERS_STATE.FALL:
-                this.sprite.body.setAllowGravity(true);
-                break;
-        }
-    }
+   
 
     updateAnimation(delta){
-        if (this.direction !== 0 && this.sprite.body.velocity.x !== 0) {
+        if (Math.abs(this.sprite.body.velocity.x) > 5) {
             const dx = Math.abs(this.sprite.x - this.lastX);
             this.lastX = this.sprite.x;
 
@@ -324,7 +393,7 @@ class Player{
             return;
         }
 
-        if(this.playerState === PLAYERS_STATE.IDLE){
+        if(this.currentState instanceof IdleState){
             this.idleTimer += delta;
 
             while(this.idleTimer >= 300){
@@ -336,96 +405,9 @@ class Player{
             return;
         }
     }
-
-    processState(wantedState, eventState){
-        let nextState = this.playerState;
-        if(eventState === "CUT_JUMP"){
-            this.sprite.body.velocity.y *= 0.35; // coupe nette
-            // IMPORTANT : on casse le lock du jump start
-            console.log("CUT JUMP");
-            this.stateLockTimer = 0;
-            return;
-        }
-        
-        //priorite aux event state
-        //console.log("Event State : ", eventState);
-        if(eventState && eventState !== "CUT_JUMP"){
-            //console.log("Current State : ", this.playerState, " Wanted State : ", wantedState, " Event State : ", eventState);
-            nextState = this.requestState(eventState);
-        }
-        //ensuite on regarde les wanted state
-        else if(wantedState){
-            nextState = this.requestState(wantedState);
-        }
-        //console.log("process State : ", nextState);
-        this.playerState = nextState;
-    }
-
-    requestState(state){
-
-        
-        if(state === PLAYERS_STATE.HIT){
-            if(this.stateLockTimer > 0){
-                return this.playerState;
-            }
-
-            return state;
-        }
-
-        if(state === PLAYERS_STATE.DASH){
-            console.log("Request state lock timer : ", this.stateLockTimer);
-            if(this.playerState === PLAYERS_STATE.LANDING){
-                return state;
-            }
-            
-            
-            if(this.stateLockTimer > 0){
-                return this.playerState;
-            }
-            
-            if(this.direction === 0 && this.lastDirection === undefined){
-                return this.playerState;
-            }
-            
-            return state;
-        }
-        if(this.stateLockTimer > 0 && state !== PLAYERS_STATE.JUMP)
-            return this.playerState;
-        
-        switch(state){
-            case PLAYERS_STATE.JUMP_START :
-                if(this.jumpBufferTimer > 0 && this.coyoteTimer > 0){
-                    console.log("Requesting Jump Start");
-                    return state;
-                }
-                break;
-            case PLAYERS_STATE.JUMP :
-                return state;
-            case PLAYERS_STATE.IDLE :
-                this.direction = this.walk ? 1 : this.backWalk ? -1 : 0;
-                if(this.direction === 0)
-                    return state;
-                break;
-            case PLAYERS_STATE.LANDING:
-                return state;
-            case PLAYERS_STATE.FALL:
-                return state;
-        }   
-
-        return this.playerState;
-    }
 }
 
-const PLAYERS_STATE = {
-    IDLE: "idle",
-    WALK: "walk",
-    JUMP: "jump",
-    FALL: "fall",
-    JUMP_START: "jump_start",
-    LANDING: "landing",
-    DASH: "dash",
-    HIT: "hit"
-};
+
 
 const config = {
     type: Phaser.AUTO,
