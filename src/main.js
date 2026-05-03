@@ -4,16 +4,43 @@ const GRAVITY = 800;
 const SPEED = 100;
 const JUMP_FORCE = -500;
 const DASH_SPEED = 400;
-const DASH_TIME = 150; //ms
+const DASH_TIME = 100; //ms
 const AIR_CONTROL_MULTIPLIER = 0.6;
 const JUMP_BUFFER_TIME = 120; //ms
-const COYOTE_TIME = 100; //ms
+const COYOTE_TIME = 200; //ms
 const JUMP_START_TIME = 100; //ms
 const LANDING_TIME = 80; //ms
 const HIT_TIME = 600; //ms
 const JUMP_CUT_MULTIPLIER = 0.35;
 let rectangle;
 
+class DashState {
+    constructor(player){
+        player.sprite.body.setAllowGravity(false);
+        player.stateLockTimer = DASH_TIME;
+        player.sprite.anims.stop();
+        player.sprite.setFrame(16);
+    }
+    enter(player){
+        player.dashDirection = player.direction !== 0 ? player.direction : player.lastDirection ;
+        player.sprite.body.velocity.x = player.dashDirection * DASH_SPEED;
+        player.sprite.body.velocity.y = 0;
+    }
+
+    update(player, delta){
+        player.stateLockTimer = Math.max(0, player.stateLockTimer - delta);
+
+        if(player.stateLockTimer <= 0){
+            player.sprite.body.setAllowGravity(true);
+            
+            if(player.isGrounded){
+                return new IdleState(player);
+            }else{
+                return new FallState(player);
+            }
+        }
+    }
+}
 
 class MovingPlatform {
     statrtX;
@@ -103,13 +130,16 @@ class JumpState{
 
         if (player.jumpBufferTimer > 0){
             player.jumpBufferTimer = 0;
-            player.coyoteTimer = 0;
         }
     }
 
     update(player,delta){
         player.stateLockTimer = Math.max(0, player.stateLockTimer - delta);
-        console.log("JUMP START state lock timer: ", player.stateLockTimer);
+
+            //activation du dash
+            if(player.dashJustDown && (player.lastDirection !== undefined || player.direction !== 0)){
+                return new DashState(player);
+            }
 
             //Transition vers fall
             if(player.sprite.body.velocity.y >= 0) {
@@ -131,8 +161,9 @@ class FallState{
 
     update(player){
         if(player.isGrounded){
-            if (player.jumpBufferTimer > 0 && player.coyoteTimer > 0) {
+            if (player.jumpBufferTimer > 0) {
                 player.jumpBufferTimer = 0;
+
                 return new JumpState(player);
             }else{
                  return new LandingState(player);
@@ -178,7 +209,7 @@ class WalkState{
             return new IdleState(player);
         }
 
-        if(player.upJustDown){
+        if(player.upJustDown && player.coyoteTimer > 0){
             return new JumpState(player);
         }
 
@@ -189,8 +220,7 @@ class IdleState{
     enter(){}
 
     update(player){
-
-        if(player.upJustDown){
+        if(player.upJustDown && player.coyoteTimer > 0){
             return new JumpState(player);
         }
 
@@ -368,7 +398,7 @@ class Player{
             this.jumpBufferTimer = Math.max(0, this.jumpBufferTimer - delta);
         }
         //Coyote Time
-        if(this.sprite.body.blocked.down){
+        if(this.isGrounded){
             this.coyoteTimer = COYOTE_TIME;
         }else{
             this.coyoteTimer = Math.max(0, this.coyoteTimer - delta);
