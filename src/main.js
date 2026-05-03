@@ -111,7 +111,7 @@ class DeadState {
         // rien → état bloqué
 
         // option : respawn automatique
-        if (player.sprite.y > 700) {
+        if (this.timer <= 0) {
             return new RespawnState(player);
         }
     }
@@ -263,8 +263,10 @@ class Player{
     idleFrame = 0;
     currentState;
     plateForm_5;
+    scene;
 
     constructor(scene){
+        this.scene = scene;
         //world bounds
         scene.physics.world.setBounds(0, 0, 3000, 600);
 
@@ -273,7 +275,7 @@ class Player{
         this.sprite = scene.physics.add.sprite(100, 100, 'player');
         this.sprite.body.setSize(20, 30);
 
-        var sol = scene.add.rectangle(150, 600, 400, 100, 0x632800);
+        var sol = scene.add.rectangle(175, 600, 348, 100, 0x632800);
         var beach_water = scene.add.rectangle(1350, 600, 2000, 50, 0x87CEEB);
         scene.physics.add.existing(beach_water, true);
         scene.physics.add.overlap(this.sprite, beach_water, () => {
@@ -346,7 +348,11 @@ class Player{
             this.transitionTo(nextState);
         }
 
-        if(this.sprite)
+        if (!this.sprite.body.blocked.left && this.sprite.x < 0) {
+            this.kill();
+        }
+
+     
 
         this.applyPhysics();
         this.updateAnimation(delta);
