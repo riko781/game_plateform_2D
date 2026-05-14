@@ -26,14 +26,13 @@ let rectangle;
 class DashState {
     constructor(player){
         player.stateLockTimer = CoreTiming.movement.dashDuration;
-        player.sprite.body.setAllowGravity(false);
         player.sprite.anims.stop();
         player.sprite.setFrame(16);
     }
     enter(player){
         player.dashDirection = player.direction !== 0 ? player.direction : player.lastDirection ;
         player.sprite.body.velocity.x = player.dashDirection * DASH_SPEED;
-        player.sprite.body.velocity.y = 0;
+        player.sprite.body.velocity.y *= 0.2;
     }
 
     update(player, delta){
