@@ -6,7 +6,7 @@ const CoreTiming = {
         jumpBuffer: 100, //ms
         dashDuration: 90, //ms
         landing: 60, //ms
-        timeToApex: 0.22, //ms, temps moyen pour atteindre le point le plus haut d'un saut, utilisé pour le jump cut
+        timeToApex: 0.28, //ms, temps moyen pour atteindre le point le plus haut d'un saut, utilisé pour le jump cut
     },
     
     combat:{
@@ -14,12 +14,12 @@ const CoreTiming = {
     }
 }
 
-const JUMP_HEIGHT = 120;
+const JUMP_HEIGHT = 130;
 const GRAVITY = (JUMP_HEIGHT * 2) / (CoreTiming.movement.timeToApex * CoreTiming.movement.timeToApex); // calcul de la gravité pour atteindre la hauteur de saut désirée en un temps donné
 const JUMP_FORCE = -GRAVITY * CoreTiming.movement.timeToApex; // calcul de la force de saut nécessaire pour atteindre la hauteur désirée
-const SPEED = 100;
-const DASH_SPEED = 400;
-const AIR_CONTROL_MULTIPLIER = 0.6;
+const SPEED = 140;
+const DASH_SPEED = 380;
+const AIR_CONTROL_MULTIPLIER = 0.45;
 const JUMP_CUT_MULTIPLIER = 0.35;
 let rectangle;
 
@@ -187,20 +187,23 @@ class LandingState{
     }
 
     enter(player){
-        player.sprite.body.velocity.x *= 0.5;
+        player.sprite.body.velocity.y = 0;
+        player.sprite.body.velocity.x *= 0.85;
     }
 
     update(player, delta){
         this.timer -= delta;
 
-        if(this.timer <= 0){
-            const direction = player.walk ? 1 : player.backWalk ? -1 : 0;
+        const direction = 
+            player.walk ? 1 : 
+            player.backWalk ? -1 : 0;
 
-            if(direction !== 0){
-               return new WalkState(player);
-            }else{
-                return new IdleState(player);
-            }
+        if(direction !== 0){
+            return new WalkState(player);
+        }
+
+        if(this.timer <= 0){
+            return new IdleState(player);
         }
     }
 }
@@ -393,8 +396,9 @@ class Player{
             this.lastDirection = this.direction;
         }
 
-        const control = this.isGrounded ? 1 : AIR_CONTROL_MULTIPLIER;
-        this.sprite.body.velocity.x = this.direction * SPEED * control;
+        const targetDirection = this.direction * SPEED ;
+        const acceleration = this.isGrounded ? 1 : AIR_CONTROL_MULTIPLIER;
+        this.sprite.body.velocity.x += (targetDirection - this.sprite.body.velocity.x) * acceleration;
 
         if(this.direction !== 0){
             this.sprite.setFlipX(this.direction === -1);
