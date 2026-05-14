@@ -1,23 +1,30 @@
 import Phaser from "phaser";
 
+const CoreTiming = {
+    movement:{
+        coyote: 120, //ms
+        jumpBuffer: 100, //ms
+        dashDuration: 90, //ms
+        landing: 60, //ms
+    },
+    
+    combat:{
+        hitdeath: 600, //ms
+    }
+}
+
 const GRAVITY = 800;
 const SPEED = 100;
 const JUMP_FORCE = -500;
 const DASH_SPEED = 400;
-const DASH_TIME = 100; //ms
 const AIR_CONTROL_MULTIPLIER = 0.6;
-const JUMP_BUFFER_TIME = 120; //ms
-const COYOTE_TIME = 200; //ms
-const JUMP_START_TIME = 100; //ms
-const LANDING_TIME = 80; //ms
-const HIT_TIME = 600; //ms
 const JUMP_CUT_MULTIPLIER = 0.35;
 let rectangle;
 
 class DashState {
     constructor(player){
+        player.stateLockTimer = CoreTiming.movement.dashDuration;
         player.sprite.body.setAllowGravity(false);
-        player.stateLockTimer = DASH_TIME;
         player.sprite.anims.stop();
         player.sprite.setFrame(16);
     }
@@ -42,6 +49,7 @@ class DashState {
     }
 }
 
+//Classe pour une plateforme mobile simple, oscillant horizontalement autour d'une position de départ
 class MovingPlatform {
     statrtX;
     distance;
@@ -85,7 +93,7 @@ class RespawnState {
 class DeadState {
     timer = 0;
     constructor(player) {
-        this.timer = HIT_TIME;
+        this.timer = CoreTiming.combat.hitdeath;
     }
 
     enter(player) {
@@ -118,8 +126,7 @@ class DeadState {
 }
 class JumpState{
     constructor(player){
-        player.stateLockTimer = JUMP_START_TIME;
-
+        console.log("JumpState");
     }
     
     enter(player){
@@ -175,7 +182,7 @@ class FallState{
 class LandingState{
     timer = 0;
     constructor(player){
-            this.timer = LANDING_TIME;
+            this.timer = CoreTiming.movement.landing;
     }
 
     enter(player){
@@ -220,6 +227,7 @@ class IdleState{
     enter(){}
 
     update(player){
+        console.log(player.coyoteTimer);
         if(player.upJustDown && player.coyoteTimer > 0){
             return new JumpState(player);
         }
@@ -399,13 +407,13 @@ class Player{
     updateTimers(delta){
         //initializations Timers
         if(this.upJustDown){
-            this.jumpBufferTimer = JUMP_BUFFER_TIME;
+            this.jumpBufferTimer = CoreTiming.movement.jumpBuffer;
         }else{
             this.jumpBufferTimer = Math.max(0, this.jumpBufferTimer - delta);
         }
         //Coyote Time
         if(this.isGrounded){
-            this.coyoteTimer = COYOTE_TIME;
+            this.coyoteTimer = CoreTiming.movement.coyote;
         }else{
             this.coyoteTimer = Math.max(0, this.coyoteTimer - delta);
         }
