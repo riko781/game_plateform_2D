@@ -6,6 +6,7 @@ const CoreTiming = {
         jumpBuffer: 100, //ms
         dashDuration: 90, //ms
         landing: 60, //ms
+        timeToApex: 0.22, //ms, temps moyen pour atteindre le point le plus haut d'un saut, utilisé pour le jump cut
     },
     
     combat:{
@@ -13,9 +14,10 @@ const CoreTiming = {
     }
 }
 
-const GRAVITY = 800;
+const JUMP_HEIGHT = 120;
+const GRAVITY = (JUMP_HEIGHT * 2) / (CoreTiming.movement.timeToApex * CoreTiming.movement.timeToApex); // calcul de la gravité pour atteindre la hauteur de saut désirée en un temps donné
+const JUMP_FORCE = -GRAVITY * CoreTiming.movement.timeToApex; // calcul de la force de saut nécessaire pour atteindre la hauteur désirée
 const SPEED = 100;
-const JUMP_FORCE = -500;
 const DASH_SPEED = 400;
 const AIR_CONTROL_MULTIPLIER = 0.6;
 const JUMP_CUT_MULTIPLIER = 0.35;
@@ -293,8 +295,8 @@ class Player{
         });
 
         //var plateForm_left = scene.add.rectangle(750, 450, 200, 20, 0x632800);
-        var plateForm_1 = scene.add.rectangle(450, 450, 200, 20, 0x632800);
-        var plateForm_2 = scene.add.rectangle(700, 350, 200, 20, 0x632800);
+        var plateForm_1 = scene.add.rectangle(450, 500, 200, 20, 0x632800);
+        var plateForm_2 = scene.add.rectangle(650, 440, 200, 20, 0x632800);
         var plateForm_3 = scene.add.rectangle(850, 450, 50, 20, 0x632800);
         var plateForm_4 = scene.add.rectangle(950, 450, 50, 20, 0x632800);
         //var plateForm_5 = scene.add.rectangle(1050, 450, 50, 20, 0x632800);
@@ -450,6 +452,7 @@ class Player{
         }
     }
 }
+
 
 
 
