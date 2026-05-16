@@ -276,6 +276,7 @@ class Player{
     currentState;
     plateForm_5;
     scene;
+    debugText;
 
     constructor(scene){
         this.scene = scene;
@@ -332,8 +333,33 @@ class Player{
         camera.startFollow(this.sprite, true, 0.05, 0.05,-360,175);
         camera.setBounds(0, 0, 3000, 600);
 
+        //debug
+        this.debugText = scene.add.text(10,10,'', { 
+            font: '14px',
+            color: '#ffffff',
+            backgroundColor: '#000000',
+            padding: { x: 6, y: 4 },
+        });
+
+        this.debugText.setScrollFactor(0);
+        this.debugText.setDepth(9999);
+
         //players state initialization
         this.currentState = new IdleState(this);
+    }
+
+    updateDebugText(delta){
+        this.debugText.setText([
+            `state: ${this.currentState.constructor.name}`,
+            `isGrounded: ${this.isGrounded}`,
+            `velocity x: ${this.sprite.body.velocity.x.toFixed(1)}`,
+            `velocity y: ${this.sprite.body.velocity.y.toFixed(1)}`,
+            `coyoteTimer: ${this.coyoteTimer.toFixed(0)}`,
+            `jumpBufferTimer: ${this.jumpBufferTimer.toFixed(0)}`,
+            `direction: ${this.direction}`,
+            `landTimer: ${this.currentState instanceof LandingState ? this.currentState.timer.toFixed(0) : 'N/A'}`,
+            `fps: ${(1000 / delta).toFixed(0)}`,
+        ]);
     }
 
     kill () {
@@ -369,6 +395,9 @@ class Player{
         this.applyPhysics();
         this.updateAnimation(delta);
         this.wasGrounded = this.sprite.body.blocked.down;
+
+        //debug
+        this.updateDebugText(delta);
     }
 
     readInput(){
