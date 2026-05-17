@@ -127,7 +127,6 @@ class DeadState {
 }
 class JumpState{
     constructor(player){
-        console.log("JumpState");
     }
     
     enter(player){
@@ -143,21 +142,22 @@ class JumpState{
 
     update(player,delta){
         player.stateLockTimer = Math.max(0, player.stateLockTimer - delta);
+        player.airTime += delta;
 
-            //activation du dash
-            if(player.dashJustDown && (player.lastDirection !== undefined || player.direction !== 0)){
-                return new DashState(player);
-            }
+        //activation du dash
+        if(player.dashJustDown && (player.lastDirection !== undefined || player.direction !== 0)){
+            return new DashState(player);
+        }
 
-            //Transition vers fall
-            if(player.sprite.body.velocity.y >= 0) {
-                return new FallState(player);
-            }
+        //Transition vers fall
+        if(player.sprite.body.velocity.y >= 0) {
+            return new FallState(player);
+        }
             
-            // CUT JUMP 
-            if (player.upJustUp && player.sprite.body.velocity.y < 0 ) {
-                player.sprite.body.velocity.y *= JUMP_CUT_MULTIPLIER; // coupe nette
-            }
+        // CUT JUMP 
+        if (player.upJustUp && player.sprite.body.velocity.y < 0 ) {
+            player.sprite.body.velocity.y *= JUMP_CUT_MULTIPLIER; // coupe nette
+        }
     }
 }
 class FallState{
@@ -169,6 +169,8 @@ class FallState{
 
     update(player){
         if(player.isGrounded){
+            player.airTime = 0;
+
             if (player.jumpBufferTimer > 0) {
                 player.jumpBufferTimer = 0;
 
@@ -231,7 +233,6 @@ class IdleState{
     enter(){}
 
     update(player){
-        console.log(player.coyoteTimer);
         if(player.upJustDown && player.coyoteTimer > 0){
             return new JumpState(player);
         }
@@ -277,6 +278,9 @@ class Player{
     plateForm_5;
     scene;
     debugText;
+    debugGraphics;
+    lastStateName;
+    airTime = 0;
 
     constructor(scene){
         this.scene = scene;
@@ -333,7 +337,7 @@ class Player{
         camera.startFollow(this.sprite, true, 0.05, 0.05,-360,175);
         camera.setBounds(0, 0, 3000, 600);
 
-        //debug
+        //debug text
         this.debugText = scene.add.text(10,10,'', { 
             font: '14px',
             color: '#ffffff',
@@ -341,8 +345,12 @@ class Player{
             padding: { x: 6, y: 4 },
         });
 
+        
         this.debugText.setScrollFactor(0);
         this.debugText.setDepth(9999);
+
+        //debug graphique
+        this.debugGraphics = scene.add.graphics();
 
         //players state initialization
         this.currentState = new IdleState(this);
@@ -350,7 +358,9 @@ class Player{
 
     updateDebugText(delta){
         this.debugText.setText([
+            `transition: ${this.lastStateName ?? 'N/A'} → ${this.currentState.constructor.name}`,
             `state: ${this.currentState.constructor.name}`,
+            `airTime: ${this.airTime.toFixed(0)}`,
             `isGrounded: ${this.isGrounded}`,
             `velocity x: ${this.sprite.body.velocity.x.toFixed(1)}`,
             `velocity y: ${this.sprite.body.velocity.y.toFixed(1)}`,
@@ -368,6 +378,7 @@ class Player{
     }
 
     transitionTo(newState){
+        this.lastStateName = this.currentState?.constructor.name;
         this.currentState?.exit?.(this);
         this.currentState = newState;
         this.currentState?.enter?.(this);
@@ -398,6 +409,9 @@ class Player{
 
         //debug
         this.updateDebugText(delta);
+        this.debugGraphics.clear();
+        this.debugGraphics.lineStyle(2, this.isGrounded ? 0x00ff00 : 0xff0000);
+        this.debugGraphics.strokeRect(this.sprite.body.x, this.sprite.body.y, this.sprite.body.width, this.sprite.body.height);
     }
 
     readInput(){
