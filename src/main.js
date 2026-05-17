@@ -351,7 +351,7 @@ class Player{
 
         //debug graphique
         this.debugGraphics = scene.add.graphics();
-
+       
         //players state initialization
         this.currentState = new IdleState(this);
     }
@@ -412,6 +412,11 @@ class Player{
         this.debugGraphics.clear();
         this.debugGraphics.lineStyle(2, this.isGrounded ? 0x00ff00 : 0xff0000);
         this.debugGraphics.strokeRect(this.sprite.body.x, this.sprite.body.y, this.sprite.body.width, this.sprite.body.height);
+
+        const centerX = this.sprite.body.center.x;
+        const centerY = this.sprite.body.center.y;
+        this.debugGraphics.lineStyle(2, 0x00ffff);
+        this.debugGraphics.lineBetween(centerX, centerY, centerX + this.sprite.body.velocity.x * 0.2, centerY + this.sprite.body.velocity.y * 0.2);
     }
 
     readInput(){
