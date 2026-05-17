@@ -281,6 +281,8 @@ class Player{
     debugGraphics;
     lastStateName;
     airTime = 0;
+    landingFlashTimer = 0;
+    landingFlashDuration = 120;
 
     constructor(scene){
         this.scene = scene;
@@ -386,6 +388,13 @@ class Player{
 
     update(delta){
         this.isGrounded = this.sprite.body.blocked.down;
+        const justLanded = this.isGrounded && !this.wasGrounded;
+
+        if(justLanded){
+            this.landingFlashTimer = this.landingFlashDuration;
+        }
+
+        this.landingFlashTimer = Math.max(0, this.landingFlashTimer - delta);
 
         this.readInput();
         this.updateTimers(delta);
@@ -401,8 +410,6 @@ class Player{
             this.kill();
         }
 
-     
-
         this.applyPhysics();
         this.updateAnimation(delta);
         this.wasGrounded = this.sprite.body.blocked.down;
@@ -412,6 +419,25 @@ class Player{
         this.debugGraphics.clear();
         this.debugGraphics.lineStyle(2, this.isGrounded ? 0x00ff00 : 0xff0000);
         this.debugGraphics.strokeRect(this.sprite.body.x, this.sprite.body.y, this.sprite.body.width, this.sprite.body.height);
+
+        if (this.landingFlashTimer > 0) {
+            const progress =
+                this.landingFlashTimer / this.landingFlashDuration;
+
+            const radius = 20 * (1 - progress);
+
+            this.debugGraphics.lineStyle(
+                2,
+                0xffff00,
+                progress
+            );
+
+            this.debugGraphics.strokeCircle(
+                this.sprite.body.center.x,
+                this.sprite.body.bottom,
+                radius
+            );
+        }
 
         const centerX = this.sprite.body.center.x;
         const centerY = this.sprite.body.center.y;
