@@ -21,6 +21,7 @@ const SPEED = 140;
 const DASH_SPEED = 380;
 const AIR_CONTROL_MULTIPLIER = 0.45;
 const JUMP_CUT_MULTIPLIER = 0.35;
+
 let rectangle;
 
 class DashState {
@@ -283,7 +284,9 @@ class Player{
     airTime = 0;
     landingFlashTimer = 0;
     landingFlashDuration = 120;
-
+    cameraOffsetX = 0;
+    cameraTargetOffsetX = 0;
+    
     constructor(scene){
         this.scene = scene;
         //world bounds
@@ -313,7 +316,7 @@ class Player{
       
         //physics
         scene.physics.add.existing(rectangle);
-        scene.physics.add.existing(this.sprite);
+        //scene.physics.add.existing(this.sprite);
         scene.physics.add.existing(sol,true);
         scene.physics.add.existing(plateForm_1,true);
         scene.physics.add.existing(plateForm_2,true);
@@ -329,15 +332,12 @@ class Player{
         scene.physics.add.collider(this.sprite,this.plateForm_5.platform);
 
         //input
-        this.dKeyObject = scene.input.keyboard.createCursorKeys().right; 
-        this.qKeyObject = scene.input.keyboard.createCursorKeys().left;
-        this.spaceKeyObject = scene.input.keyboard.addKey("space");
+        const cursors = scene.input.keyboard.createCursorKeys();
+        this.dKeyObject = cursors.right; 
+        this.qKeyObject = cursors.left;
+        this.spaceKeyObject = cursors.space;
         this.shiftKeyObject = scene.input.keyboard.addKey("p");
         this.hKeyObject = scene.input.keyboard.addKey("h");
-        //camera
-        let camera = scene.cameras.main;
-        camera.startFollow(this.sprite, true, 0.05, 0.05,-360,175);
-        camera.setBounds(0, 0, 3000, 600);
 
         //debug text
         this.debugText = scene.add.text(10,10,'', { 
@@ -356,6 +356,20 @@ class Player{
        
         //players state initialization
         this.currentState = new IdleState(this);
+    }
+
+    updateCamera(delta){
+        const camera = this.scene.cameras.main;
+
+        if(this.direction !== 0){
+            this.cameraTargetOffsetX = this.direction * 100;
+        }
+
+        this.cameraOffsetX +=
+            (this.cameraTargetOffsetX - this.cameraOffsetX) * 0.08;
+
+        console.log(camera);
+        camera.setFollowOffset(this.cameraOffsetX, 0);
     }
 
     updateDebugText(delta){
@@ -387,6 +401,7 @@ class Player{
     }
 
     update(delta){
+        //this.updateCamera(delta);
         this.isGrounded = this.sprite.body.blocked.down;
         const justLanded = this.isGrounded && !this.wasGrounded;
 
@@ -562,6 +577,12 @@ function preload() {
 
 function create() {
     player = new Player(this);
+    
+    const camera = this.cameras.main;
+
+    camera.setBounds(0, 0, 3000, 600);
+    camera.startFollow(player.sprite, true, 0.08, 0.08);
+    camera.setFollowOffset(0, 0);
 }
 
 function update(timer, delta) {
