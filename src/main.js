@@ -249,6 +249,41 @@ class IdleState{
         }
     }
 }
+
+class Enemy{
+    scene;
+    sprite;
+    direction;
+    speed;
+
+    constructor(scene, x, y){
+        this.scene = scene;
+        this.sprite = scene.add.rectangle(x, y, 40, 40, 0xff0000);
+
+        scene.physics.add.existing(this.sprite);
+        this.sprite.body.setCollideWorldBounds(true);
+
+        this.direction = -1;
+        this.speed = 50;
+    }
+
+    update(){
+        this.sprite.body.setVelocityX(this.direction * this.speed);
+
+        //mini patrouille simple
+        if(this.sprite.x < 600){
+            this.direction = 1;
+        }
+
+        if(this.sprite.x > 700){
+            this.direction = -1;
+        }
+    }
+
+    kill (){
+        this.sprite.destroy();
+    }
+}
 class Player{
     upJustDown;
     upJustUp;
@@ -286,7 +321,7 @@ class Player{
     landingFlashDuration = 120;
     cameraOffsetX = 0;
     cameraTargetOffsetX = 0;
-    
+
     constructor(scene){
         this.scene = scene;
         //world bounds
@@ -299,7 +334,9 @@ class Player{
 
         var sol = scene.add.rectangle(175, 600, 348, 100, 0x632800);
         var beach_water = scene.add.rectangle(1350, 600, 2000, 50, 0x87CEEB);
+
         scene.physics.add.existing(beach_water, true);
+
         scene.physics.add.overlap(this.sprite, beach_water, () => {
             if(!(this.currentState instanceof DeadState)){
                 this.kill();
@@ -327,6 +364,7 @@ class Player{
         scene.physics.add.collider(this.sprite,sol);
         scene.physics.add.collider(this.sprite,plateForm_1);
         scene.physics.add.collider(this.sprite,plateForm_2);
+        scene.physics.add.collider(enemy.sprite,plateForm_2);
         scene.physics.add.collider(this.sprite,plateForm_3);
         scene.physics.add.collider(this.sprite,plateForm_4);
         scene.physics.add.collider(this.sprite,this.plateForm_5.platform);
@@ -356,6 +394,25 @@ class Player{
        
         //players state initialization
         this.currentState = new IdleState(this);
+
+        scene.physics.add.overlap(
+            this.sprite,
+            enemy.sprite,
+            () => {
+                // si le joueur tombe dessus
+                if (this.sprite.body.velocity.y > 0
+                    && this.sprite.y < enemy.sprite.y) {
+
+                    enemy.kill();
+
+                    this.sprite.body.velocity.y = JUMP_FORCE * 0.6;
+
+                } else {
+
+                    this.kill();
+                }
+            }
+        );
     }
 
     updateDebugText(delta){
@@ -399,6 +456,10 @@ class Player{
         this.readInput();
         this.updateTimers(delta);
 
+        console.log(enemy.sprite);
+        if(enemy.sprite.body !== undefined)
+            enemy.update();
+        
         const nextState = this.currentState?.update(this,delta);
         this.plateForm_5.update();
 
@@ -554,6 +615,7 @@ const config = {
 
 new Phaser.Game(config);
 let player;
+let enemy;
 
 function preload() {
     const playerPath = `${import.meta.env.BASE_URL}assets/player-Sheet.png`;
@@ -561,12 +623,13 @@ function preload() {
 }
 
 function create() {
+    enemy = new Enemy(this, 650, 200);
     player = new Player(this);
-    
+    console.log(player);
     const camera = this.cameras.main;
 
     camera.setBounds(0, 0, 3000, 600);
-    camera.startFollow(player.sprite, true, 0.08, 0.08);
+    camera.startFollow(player.sprite, true, 0.1, 0.1);
     camera.setFollowOffset(0, 0);
 }
 
