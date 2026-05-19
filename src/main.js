@@ -358,20 +358,6 @@ class Player{
         this.currentState = new IdleState(this);
     }
 
-    updateCamera(delta){
-        const camera = this.scene.cameras.main;
-
-        if(this.direction !== 0){
-            this.cameraTargetOffsetX = this.direction * 100;
-        }
-
-        this.cameraOffsetX +=
-            (this.cameraTargetOffsetX - this.cameraOffsetX) * 0.08;
-
-        console.log(camera);
-        camera.setFollowOffset(this.cameraOffsetX, 0);
-    }
-
     updateDebugText(delta){
         this.debugText.setText([
             `transition: ${this.lastStateName ?? 'N/A'} → ${this.currentState.constructor.name}`,
@@ -401,7 +387,6 @@ class Player{
     }
 
     update(delta){
-        //this.updateCamera(delta);
         this.isGrounded = this.sprite.body.blocked.down;
         const justLanded = this.isGrounded && !this.wasGrounded;
 
