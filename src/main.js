@@ -268,6 +268,10 @@ class Enemy{
     }
 
     update(){
+        
+        if(this.sprite.body === undefined)
+            return false;
+
         this.sprite.body.setVelocityX(this.direction * this.speed);
 
         //mini patrouille simple
@@ -456,9 +460,7 @@ class Player{
         this.readInput();
         this.updateTimers(delta);
 
-        console.log(enemy.sprite);
-        if(enemy.sprite.body !== undefined)
-            enemy.update();
+        enemy.update();
         
         const nextState = this.currentState?.update(this,delta);
         this.plateForm_5.update();
