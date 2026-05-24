@@ -84,8 +84,7 @@ class MovingPlatform {
 }
 class RespawnState {
     enter(player) {
-        player.sprite.setPosition(100, 100);
-        player.sprite.body.velocity.set(0, 0);
+        player.scene.scene.restart();
     }
 
     update(player) {
@@ -627,7 +626,7 @@ function preload() {
 function create() {
     enemy = new Enemy(this, 650, 200);
     player = new Player(this);
-    console.log(player);
+
     const camera = this.cameras.main;
 
     camera.setBounds(0, 0, 3000, 600);
