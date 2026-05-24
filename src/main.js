@@ -521,24 +521,34 @@ class Player{
     
     applyHorizontalMovement() {
         if(this.currentState instanceof DeadState) return; // déjà mort
+
         this.direction = this.walk ? 1 : this.backWalk ? -1 : 0;
 
+        const targetSpeed = this.direction * SPEED;
+        const acceleration = this.isGrounded ? 0.08 : AIR_CONTROL_MULTIPLIER;
+        const deceleration = this.isGrounded ? 0.13 : 0.93;
+        const velocityX = this.sprite.body.velocity.x;
+
+
         if (this.direction === 0) {
-            if (this.isGrounded) {
-                this.sprite.body.velocity.x = 0;
-            }
-            return false;
+            const newVelocity = Phaser.Math.Linear(velocityX, 0, deceleration);
+            this.sprite.body.velocity.x = Math.abs(newVelocity) < 1 ? 0 : newVelocity; 
+            return;
         }else{
             this.lastDirection = this.direction;
         }
 
-        const targetDirection = this.direction * SPEED ;
-        const acceleration = this.isGrounded ? 1 : AIR_CONTROL_MULTIPLIER;
-        this.sprite.body.velocity.x += (targetDirection - this.sprite.body.velocity.x) * acceleration;
+        const turnBoost =
+            Math.sign(velocityX) !== 0 &&
+            Math.sign(velocityX) !== Math.sign(targetSpeed)
+                ? 1.8
+                : 1;
+        
+        const finalAcceleration = acceleration * turnBoost;
 
-        if(this.direction !== 0){
-            this.sprite.setFlipX(this.direction === -1);
-        }
+        this.sprite.body.velocity.x = Phaser.Math.Linear(velocityX, targetSpeed, finalAcceleration);
+        this.lastDirection  = this.direction;
+        this.sprite.setFlipX(this.direction === -1);
     }
 
     applyPhysics(delta){
