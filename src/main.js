@@ -165,9 +165,21 @@ class FallState{
 
     enter(player){
         player.sprite.body.setAllowGravity(true);
+        player.sprite.body.velocity.y =0;
     }
 
-    update(player){
+    update(player, delta){
+        const FALL_MULTIPLIER = 1.4;
+        const FAST_FALL_MULTIPLIER = 2.2;
+        
+        if(player.sprite.body.velocity.y > 0){
+                player.sprite.body.velocity.y = GRAVITY * (FALL_MULTIPLIER - 1) * (delta / 16.66);
+
+            if(!player.spaceKeyObject.isDown){
+                player.sprite.body.velocity.y = GRAVITY * 0.8 * (delta / 16.66);
+            }
+        }
+
         if(player.isGrounded){
             player.airTime = 0;
 
@@ -362,7 +374,7 @@ class Player{
         scene.physics.add.existing(plateForm_2,true);
         scene.physics.add.existing(plateForm_3,true);
         scene.physics.add.existing(plateForm_4,true);
-        scene.physics.add.existing(this.plateForm_5);
+        
         scene.physics.add.collider(rectangle,sol);
         scene.physics.add.collider(this.sprite,sol);
         scene.physics.add.collider(this.sprite,plateForm_1);
