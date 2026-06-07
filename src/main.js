@@ -525,8 +525,8 @@ class Player{
         this.direction = this.walk ? 1 : this.backWalk ? -1 : 0;
 
         const targetSpeed = this.direction * SPEED;
-        const acceleration = this.isGrounded ? 0.08 : AIR_CONTROL_MULTIPLIER;
-        const deceleration = this.isGrounded ? 0.13 : 0.93;
+        const acceleration = this.isGrounded ? 0.04 : AIR_CONTROL_MULTIPLIER;
+        const deceleration = this.isGrounded ? 0.070 : 0.95;
         const velocityX = this.sprite.body.velocity.x;
 
 
