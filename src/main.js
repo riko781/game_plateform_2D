@@ -4,7 +4,7 @@ const CoreTiming = {
     movement:{
         coyote: 120, //ms
         jumpBuffer: 100, //ms
-        dashDuration: 90, //ms
+        dashDuration: 180, //ms
         landing: 60, //ms
         timeToApex: 0.28, //ms, temps moyen pour atteindre le point le plus haut d'un saut, utilisé pour le jump cut
     },
@@ -34,6 +34,8 @@ class DashState {
         player.dashDirection = player.direction !== 0 ? player.direction : player.lastDirection ;
         player.sprite.body.velocity.x = player.dashDirection * DASH_SPEED;
         player.sprite.body.velocity.y *= 0.2;
+        player.scene.cameras.main.shake(40, 0.003);
+        player.sprite.setScale(1.2, 0.8); // squash instant
     }
 
     update(player, delta){
@@ -41,7 +43,8 @@ class DashState {
 
         if(player.stateLockTimer <= 0){
             player.sprite.body.setAllowGravity(true);
-            
+            player.sprite.setScale(1, 1);
+
             if(player.isGrounded){
                 return new IdleState(player);
             }else{
@@ -170,14 +173,9 @@ class FallState{
 
     update(player, delta){
         const FALL_MULTIPLIER = 1.4;
-        const FAST_FALL_MULTIPLIER = 2.2;
         
         if(player.sprite.body.velocity.y > 0){
                 player.sprite.body.velocity.y = GRAVITY * (FALL_MULTIPLIER - 1) * (delta / 16.66);
-
-            if(!player.spaceKeyObject.isDown){
-                player.sprite.body.velocity.y = GRAVITY * 0.8 * (delta / 16.66);
-            }
         }
 
         if(player.isGrounded){
@@ -335,7 +333,6 @@ class Player{
     landingFlashTimer = 0;
     landingFlashDuration = 120;
     cameraOffsetX = 0;
-    cameraTargetOffsetX = 0;
 
     constructor(scene){
         this.scene = scene;
@@ -533,6 +530,7 @@ class Player{
     
     applyHorizontalMovement() {
         if(this.currentState instanceof DeadState) return; // déjà mort
+        if(this.currentState instanceof DashState) return; // DashState gère sa propre vitesse horizontale
 
         this.direction = this.walk ? 1 : this.backWalk ? -1 : 0;
 
@@ -653,9 +651,23 @@ function create() {
 
     camera.setBounds(0, 0, 3000, 600);
     camera.startFollow(player.sprite, true, 0.1, 0.1);
-    camera.setFollowOffset(0, 0);
 }
 
 function update(timer, delta) {
     player.update(delta);
+    
+const cam = this.cameras.main;
+
+const vx = player.sprite.body.velocity.x;
+
+// transforme vitesse en direction fluide
+const dir = Phaser.Math.Clamp(vx / 200, -1, 1);
+
+const targetOffsetX = dir * 60;
+
+cam.followOffset.x = Phaser.Math.Linear(
+    cam.followOffset.x,
+    targetOffsetX,
+    0.06
+);
 }
