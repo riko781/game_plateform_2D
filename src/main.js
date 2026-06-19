@@ -137,6 +137,7 @@ class JumpState{
         player.sprite.body.setAllowGravity(true);
         player.sprite.anims.stop();
         player.sprite.setFrame(10);
+        player.scene.cameras.main.shake(20, 0.002);
 
         if (player.jumpBufferTimer > 0){
             player.jumpBufferTimer = 0;
@@ -461,6 +462,7 @@ class Player{
 
         if(justLanded){
             this.landingFlashTimer = this.landingFlashDuration;
+            this.scene.cameras.main.flash(80, 255, 255, 255, true);
         }
 
         this.landingFlashTimer = Math.max(0, this.landingFlashTimer - delta);
