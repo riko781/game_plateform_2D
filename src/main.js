@@ -128,6 +128,37 @@ class DeadState {
         }
     }
 }
+
+class WinnerState {
+    timer = 1000;
+    constructor(player) {
+        this.timer = CoreTiming.combat.hitdeath;
+    }
+
+    enter(player) {
+        // Stop total du contrôle
+        player.sprite.body.velocity.x = 0;
+
+        player.sprite.body.setAllowGravity(false);
+
+        // reset inputs (optionnel mais safe)
+        player.walk = false;
+        player.backWalk = false;
+
+        // animation
+
+    }
+
+    update(player, delta) {
+        this.timer -= delta;
+        // rien → état bloqué
+        console.log("timer winner", this.timer);
+        // option : respawn automatique
+        if (this.timer <= 0) {
+            return new RespawnState(player);
+        }
+    }
+}
 class JumpState{
     constructor(player){
     }
@@ -178,6 +209,11 @@ class FallState{
 
         if (isFalling) {
             player.sprite.body.velocity.y += GRAVITY * 0.015 * (delta / 16.66) * (FALL_MULTIPLIER - 1);
+        }
+
+        //activation du dash
+        if(player.dashJustDown && (player.lastDirection !== undefined || player.direction !== 0)){
+            return new DashState(player);
         }
 
         if (player.isGrounded) {
@@ -265,10 +301,14 @@ class Enemy{
     sprite;
     direction;
     speed;
+    leftBound;
+    rightBound;
 
-    constructor(scene, x, y){
+    constructor(scene, x, y,leftBound, rightBound) {
         this.scene = scene;
         this.sprite = scene.add.rectangle(x, y, 40, 40, 0xff0000);
+        this.leftBound = leftBound;
+        this.rightBound = rightBound;
 
         scene.physics.add.existing(this.sprite);
         this.sprite.body.setCollideWorldBounds(true);
@@ -285,11 +325,11 @@ class Enemy{
         this.sprite.body.setVelocityX(this.direction * this.speed);
 
         //mini patrouille simple
-        if(this.sprite.x < 600){
+        if(this.sprite.x < this.leftBound){
             this.direction = 1;
         }
 
-        if(this.sprite.x > 700){
+        if(this.sprite.x > this.rightBound){
             this.direction = -1;
         }
     }
@@ -356,17 +396,24 @@ class Player{
             }
         });
 
-        //var plateForm_left = scene.add.rectangle(750, 450, 200, 20, 0x632800);
+        
+        const dangerStart = scene.add.rectangle(1300,430,120,20,0x632800);
+        const enemyPlatform = scene.add.rectangle(1450,430,220,20,0x632800);
+        const exitPlatform = scene.add.rectangle(1650,430,120,20,0x632800);
+        const goal = scene.add.rectangle(1800,350,60,120,0x00ff00);
+
         var plateForm_1 = scene.add.rectangle(450, 500, 200, 20, 0x632800);
         var plateForm_2 = scene.add.rectangle(650, 440, 200, 20, 0x632800);
         var plateForm_3 = scene.add.rectangle(850, 450, 50, 20, 0x632800);
         var plateForm_4 = scene.add.rectangle(950, 450, 50, 20, 0x632800);
-        //var plateForm_5 = scene.add.rectangle(1050, 450, 50, 20, 0x632800);
-        this.plateForm_5 = new MovingPlatform(scene, 1150, 400, 100, 20, 50, 100);
+        this.plateForm_5 = new MovingPlatform(scene, 1100, 400, 100, 20, 50, 50);
       
         //physics
         scene.physics.add.existing(rectangle);
-        //scene.physics.add.existing(this.sprite);
+        scene.physics.add.existing(dangerStart,true);
+        scene.physics.add.existing(enemyPlatform,true);
+        scene.physics.add.existing(exitPlatform,true);
+        scene.physics.add.existing(goal,true);
         scene.physics.add.existing(sol,true);
         scene.physics.add.existing(plateForm_1,true);
         scene.physics.add.existing(plateForm_2,true);
@@ -374,10 +421,13 @@ class Player{
         scene.physics.add.existing(plateForm_4,true);
         
         scene.physics.add.collider(rectangle,sol);
+        scene.physics.add.collider(this.sprite,dangerStart);
+        scene.physics.add.collider(this.sprite,exitPlatform);
         scene.physics.add.collider(this.sprite,sol);
         scene.physics.add.collider(this.sprite,plateForm_1);
         scene.physics.add.collider(this.sprite,plateForm_2);
-        scene.physics.add.collider(enemy.sprite,plateForm_2);
+        scene.physics.add.collider(this.sprite,enemyPlatform);
+        scene.physics.add.collider(enemy.sprite,enemyPlatform);
         scene.physics.add.collider(this.sprite,plateForm_3);
         scene.physics.add.collider(this.sprite,plateForm_4);
         scene.physics.add.collider(this.sprite,this.plateForm_5.platform);
@@ -426,6 +476,15 @@ class Player{
                 }
             }
         );
+
+        scene.physics.add.overlap(
+            this.sprite,
+            goal,
+            () => {
+                console.log("YOU WIN");
+                this.win();
+            }
+        );
     }
 
     updateDebugText(delta){
@@ -447,6 +506,11 @@ class Player{
     kill () {
         if(this.currentState instanceof DeadState) return; // déjà mort
         this.transitionTo(new DeadState(this));
+    }
+
+    win() {
+        if(this.currentState instanceof WinnerState) return; // déjà en train de respawn
+        this.transitionTo(new WinnerState(this));
     }
 
     transitionTo(newState){
@@ -646,7 +710,7 @@ function preload() {
 }
 
 function create() {
-    enemy = new Enemy(this, 650, 200);
+    enemy = new Enemy(this, 1450, 380,1380, 1520);
     player = new Player(this);
 
     const camera = this.cameras.main;
