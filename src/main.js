@@ -169,25 +169,25 @@ class FallState{
 
     enter(player){
         player.sprite.body.setAllowGravity(true);
-        player.sprite.body.velocity.y =0;
     }
 
-    update(player, delta){
-        const FALL_MULTIPLIER = 1.4;
-        
-        if(player.sprite.body.velocity.y > 0){
-                player.sprite.body.velocity.y = GRAVITY * (FALL_MULTIPLIER - 1) * (delta / 16.66);
+    update(player, delta) {
+        const FALL_MULTIPLIER = 1.35;
+
+        const isFalling = player.sprite.body.velocity.y > 0;
+
+        if (isFalling) {
+            player.sprite.body.velocity.y += GRAVITY * 0.015 * (delta / 16.66) * (FALL_MULTIPLIER - 1);
         }
 
-        if(player.isGrounded){
+        if (player.isGrounded) {
             player.airTime = 0;
 
             if (player.jumpBufferTimer > 0) {
                 player.jumpBufferTimer = 0;
-
                 return new JumpState(player);
-            }else{
-                 return new LandingState(player);
+            } else {
+                return new LandingState(player);
             }
         }
     }
@@ -387,7 +387,7 @@ class Player{
         this.dKeyObject = cursors.right; 
         this.qKeyObject = cursors.left;
         this.spaceKeyObject = cursors.space;
-        this.shiftKeyObject = scene.input.keyboard.addKey("p");
+        this.shiftKeyObject = cursors.up;
         this.hKeyObject = scene.input.keyboard.addKey("h");
 
         //debug text
@@ -537,13 +537,13 @@ class Player{
         this.direction = this.walk ? 1 : this.backWalk ? -1 : 0;
 
         const targetSpeed = this.direction * SPEED;
-        const acceleration = this.isGrounded ? 0.04 : AIR_CONTROL_MULTIPLIER;
-        const deceleration = this.isGrounded ? 0.070 : 0.95;
+        const acceleration = this.isGrounded ? 0.12 : 0.06;
+        const deceleration = this.isGrounded ? 0.18 : 0.08;
         const velocityX = this.sprite.body.velocity.x;
 
 
         if (this.direction === 0) {
-            const newVelocity = Phaser.Math.Linear(velocityX, 0, deceleration);
+            const newVelocity = Phaser.Math.Linear(velocityX, 0, deceleration * 0.8);
             this.sprite.body.velocity.x = Math.abs(newVelocity) < 1 ? 0 : newVelocity; 
             return;
         }else{
@@ -553,7 +553,7 @@ class Player{
         const turnBoost =
             Math.sign(velocityX) !== 0 &&
             Math.sign(velocityX) !== Math.sign(targetSpeed)
-                ? 1.8
+                ? 1.4
                 : 1;
         
         const finalAcceleration = acceleration * turnBoost;
