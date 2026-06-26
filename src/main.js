@@ -11,7 +11,12 @@ const CoreTiming = {
     
     combat:{
         hitdeath: 600, //ms
+    },
+
+    game:{
+        winDelay: 1500, //ms
     }
+
 }
 
 const JUMP_HEIGHT = 130;
@@ -87,6 +92,7 @@ class MovingPlatform {
 }
 class RespawnState {
     enter(player) {
+        RunMetric.attempts ++;
         player.scene.scene.restart();
     }
 
@@ -132,12 +138,12 @@ class DeadState {
 class WinnerState {
     timer = 1000;
     constructor(player) {
-        this.timer = CoreTiming.combat.hitdeath;
+        this.timer = CoreTiming.game.winDelay;
     }
 
     enter(player) {
         // Stop total du contrôle
-        player.sprite.body.velocity.x = 0;
+        player.sprite.body.setVelocity(0, 0);
 
         player.sprite.body.setAllowGravity(false);
 
@@ -145,16 +151,19 @@ class WinnerState {
         player.walk = false;
         player.backWalk = false;
 
-        // animation
+        player.scene.physics.pause();
+
+        player.scene.cameras.main.flash(150, 255, 255, 255);
 
     }
 
     update(player, delta) {
         this.timer -= delta;
-        // rien → état bloqué
-        console.log("timer winner", this.timer);
+    
         // option : respawn automatique
         if (this.timer <= 0) {
+            player.scene.physics.resume();
+
             return new RespawnState(player);
         }
     }
@@ -294,6 +303,12 @@ class IdleState{
             return new WalkState(player);
         }
     }
+}
+
+const RunMetric = {
+    deaths : 0,
+    attempts : 0,
+    levelStartTime : 0,
 }
 
 class Enemy{
@@ -505,10 +520,17 @@ class Player{
 
     kill () {
         if(this.currentState instanceof DeadState) return; // déjà mort
+        RunMetric.deaths ++;
         this.transitionTo(new DeadState(this));
     }
 
     win() {
+        const completionTime = (performance.now() - RunMetric.levelStartTime) / 1000;
+        
+        console.log("LEVEL COMPLETE");
+        console.log( "Time:", completionTime.toFixed(2), "s" );
+        console.log( "Deaths:", RunMetric.deaths );
+
         if(this.currentState instanceof WinnerState) return; // déjà en train de respawn
         this.transitionTo(new WinnerState(this));
     }
@@ -534,10 +556,12 @@ class Player{
         this.readInput();
         this.updateTimers(delta);
 
-        enemy.update();
-        
+        if(!(this.currentState instanceof WinnerState)){
+            enemy.update();
+            this.plateForm_5.update();
+        }
+
         const nextState = this.currentState?.update(this,delta);
-        this.plateForm_5.update();
 
         if(nextState){
             this.transitionTo(nextState);
@@ -713,6 +737,10 @@ function create() {
     enemy = new Enemy(this, 1450, 380,1380, 1520);
     player = new Player(this);
 
+    if(RunMetric.levelStartTime === 0){
+        RunMetric.levelStartTime = performance.now();
+    }
+
     const camera = this.cameras.main;
 
     camera.setBounds(0, 0, 3000, 600);
@@ -722,18 +750,17 @@ function create() {
 function update(timer, delta) {
     player.update(delta);
     
-const cam = this.cameras.main;
+    const cam = this.cameras.main;
 
-const vx = player.sprite.body.velocity.x;
+    const vx = player.sprite.body.velocity.x;
 
-// transforme vitesse en direction fluide
-const dir = Phaser.Math.Clamp(vx / 200, -1, 1);
+    // transforme vitesse en direction fluide
+    const dir = Phaser.Math.Clamp(vx / 200, -1, 1);
+    const targetOffsetX = dir * 60;
 
-const targetOffsetX = dir * 60;
-
-cam.followOffset.x = Phaser.Math.Linear(
-    cam.followOffset.x,
-    targetOffsetX,
-    0.06
-);
+    cam.followOffset.x = Phaser.Math.Linear(
+        cam.followOffset.x,
+        targetOffsetX,
+        0.06
+    );
 }
