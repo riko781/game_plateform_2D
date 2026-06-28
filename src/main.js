@@ -1,33 +1,8 @@
 import Phaser from "phaser";
+import { CreateLevel1 } from "./levels/Level1";
+import { CoreTiming, JUMP_HEIGHT, GRAVITY, JUMP_FORCE, SPEED, DASH_SPEED, AIR_CONTROL_MULTIPLIER, JUMP_CUT_MULTIPLIER } from "./core/GameplayConstants";
+import { Enemy } from "./Enemy.js";
 
-const CoreTiming = {
-    movement:{
-        coyote: 120, //ms
-        jumpBuffer: 100, //ms
-        dashDuration: 180, //ms
-        landing: 60, //ms
-        timeToApex: 0.28, //ms, temps moyen pour atteindre le point le plus haut d'un saut, utilisé pour le jump cut
-    },
-    
-    combat:{
-        hitdeath: 600, //ms
-    },
-
-    game:{
-        winDelay: 1500, //ms
-    }
-
-}
-
-const JUMP_HEIGHT = 130;
-const GRAVITY = (JUMP_HEIGHT * 2) / (CoreTiming.movement.timeToApex * CoreTiming.movement.timeToApex); // calcul de la gravité pour atteindre la hauteur de saut désirée en un temps donné
-const JUMP_FORCE = -GRAVITY * CoreTiming.movement.timeToApex; // calcul de la force de saut nécessaire pour atteindre la hauteur désirée
-const SPEED = 140;
-const DASH_SPEED = 380;
-const AIR_CONTROL_MULTIPLIER = 0.45;
-const JUMP_CUT_MULTIPLIER = 0.35;
-
-let rectangle;
 
 class DashState {
     constructor(player){
@@ -60,36 +35,7 @@ class DashState {
 }
 
 //Classe pour une plateforme mobile simple, oscillant horizontalement autour d'une position de départ
-class MovingPlatform {
-    statrtX;
-    distance;
-    speed;
-    platform;
-    direction;
-    constructor(scene, x, y, width, height, speed, distance) {
-        this.startX = x;
-        this.distance = distance;
-        this.speed = speed;
 
-        this.platform = scene.add.rectangle(x, y, width, height, 0x632800);
-        scene.physics.add.existing(this.platform);
-
-        this.platform.body.setImmovable(true);
-        this.platform.body.setAllowGravity(false);
-
-        this.direction = 1;
-    }
-
-    update() {
-        this.platform.body.setVelocityX(this.speed * this.direction);
-
-        if (this.platform.x > this.startX + this.distance) {
-            this.direction = -1;
-        } else if (this.platform.x < this.startX - this.distance) {
-            this.direction = 1;
-        }
-    }
-}
 class RespawnState {
     enter(player) {
         RunMetric.attempts ++;
@@ -311,48 +257,6 @@ const RunMetric = {
     levelStartTime : 0,
 }
 
-class Enemy{
-    scene;
-    sprite;
-    direction;
-    speed;
-    leftBound;
-    rightBound;
-
-    constructor(scene, x, y,leftBound, rightBound) {
-        this.scene = scene;
-        this.sprite = scene.add.rectangle(x, y, 40, 40, 0xff0000);
-        this.leftBound = leftBound;
-        this.rightBound = rightBound;
-
-        scene.physics.add.existing(this.sprite);
-        this.sprite.body.setCollideWorldBounds(true);
-
-        this.direction = -1;
-        this.speed = 50;
-    }
-
-    update(){
-        
-        if(this.sprite.body === undefined)
-            return false;
-
-        this.sprite.body.setVelocityX(this.direction * this.speed);
-
-        //mini patrouille simple
-        if(this.sprite.x < this.leftBound){
-            this.direction = 1;
-        }
-
-        if(this.sprite.x > this.rightBound){
-            this.direction = -1;
-        }
-    }
-
-    kill (){
-        this.sprite.destroy();
-    }
-}
 class Player{
     upJustDown;
     upJustUp;
@@ -396,56 +300,14 @@ class Player{
         scene.physics.world.setBounds(0, 0, 3000, 600);
 
         //game objects
-        rectangle = scene.add.rectangle(200, 0, 10, 10, 0x00ff00);
+        
         this.sprite = scene.physics.add.sprite(100, 100, 'player');
         this.sprite.body.setSize(20, 30);
-
-        var sol = scene.add.rectangle(175, 600, 348, 100, 0x632800);
-        var beach_water = scene.add.rectangle(1350, 600, 2000, 50, 0x87CEEB);
-
-        scene.physics.add.existing(beach_water, true);
-
-        scene.physics.add.overlap(this.sprite, beach_water, () => {
-            if(!(this.currentState instanceof DeadState)){
-                this.kill();
-            }
-        });
-
-        
-        const dangerStart = scene.add.rectangle(1300,430,120,20,0x632800);
-        const enemyPlatform = scene.add.rectangle(1450,430,220,20,0x632800);
-        const exitPlatform = scene.add.rectangle(1650,430,120,20,0x632800);
-        const goal = scene.add.rectangle(1800,350,60,120,0x00ff00);
-
-        var plateForm_1 = scene.add.rectangle(450, 500, 200, 20, 0x632800);
-        var plateForm_2 = scene.add.rectangle(650, 440, 200, 20, 0x632800);
-        var plateForm_3 = scene.add.rectangle(850, 450, 50, 20, 0x632800);
-        var plateForm_4 = scene.add.rectangle(950, 450, 50, 20, 0x632800);
-        this.plateForm_5 = new MovingPlatform(scene, 1100, 400, 100, 20, 50, 50);
       
         //physics
-        scene.physics.add.existing(rectangle);
-        scene.physics.add.existing(dangerStart,true);
-        scene.physics.add.existing(enemyPlatform,true);
-        scene.physics.add.existing(exitPlatform,true);
-        scene.physics.add.existing(goal,true);
-        scene.physics.add.existing(sol,true);
-        scene.physics.add.existing(plateForm_1,true);
-        scene.physics.add.existing(plateForm_2,true);
-        scene.physics.add.existing(plateForm_3,true);
-        scene.physics.add.existing(plateForm_4,true);
         
-        scene.physics.add.collider(rectangle,sol);
-        scene.physics.add.collider(this.sprite,dangerStart);
-        scene.physics.add.collider(this.sprite,exitPlatform);
-        scene.physics.add.collider(this.sprite,sol);
-        scene.physics.add.collider(this.sprite,plateForm_1);
-        scene.physics.add.collider(this.sprite,plateForm_2);
-        scene.physics.add.collider(this.sprite,enemyPlatform);
-        scene.physics.add.collider(enemy.sprite,enemyPlatform);
-        scene.physics.add.collider(this.sprite,plateForm_3);
-        scene.physics.add.collider(this.sprite,plateForm_4);
-        scene.physics.add.collider(this.sprite,this.plateForm_5.platform);
+       
+      
 
         //input
         const cursors = scene.input.keyboard.createCursorKeys();
@@ -473,33 +335,6 @@ class Player{
         //players state initialization
         this.currentState = new IdleState(this);
 
-        scene.physics.add.overlap(
-            this.sprite,
-            enemy.sprite,
-            () => {
-                // si le joueur tombe dessus
-                if (this.sprite.body.velocity.y > 0
-                    && this.sprite.y < enemy.sprite.y) {
-
-                    enemy.kill();
-
-                    this.sprite.body.velocity.y = JUMP_FORCE * 0.6;
-
-                } else {
-
-                    this.kill();
-                }
-            }
-        );
-
-        scene.physics.add.overlap(
-            this.sprite,
-            goal,
-            () => {
-                console.log("YOU WIN");
-                this.win();
-            }
-        );
     }
 
     updateDebugText(delta){
@@ -526,7 +361,7 @@ class Player{
 
     win() {
         const completionTime = (performance.now() - RunMetric.levelStartTime) / 1000;
-        
+
         console.log("LEVEL COMPLETE");
         console.log( "Time:", completionTime.toFixed(2), "s" );
         console.log( "Deaths:", RunMetric.deaths );
@@ -555,11 +390,6 @@ class Player{
 
         this.readInput();
         this.updateTimers(delta);
-
-        if(!(this.currentState instanceof WinnerState)){
-            enemy.update();
-            this.plateForm_5.update();
-        }
 
         const nextState = this.currentState?.update(this,delta);
 
@@ -702,9 +532,6 @@ class Player{
     }
 }
 
-
-
-
 const config = {
     type: Phaser.AUTO,
     width: 800,
@@ -727,6 +554,7 @@ const config = {
 new Phaser.Game(config);
 let player;
 let enemy;
+let level;
 
 function preload() {
     const playerPath = `${import.meta.env.BASE_URL}assets/player-Sheet.png`;
@@ -736,6 +564,7 @@ function preload() {
 function create() {
     enemy = new Enemy(this, 1450, 380,1380, 1520);
     player = new Player(this);
+    level = CreateLevel1(this, player, enemy);
 
     if(RunMetric.levelStartTime === 0){
         RunMetric.levelStartTime = performance.now();
@@ -748,10 +577,11 @@ function create() {
 }
 
 function update(timer, delta) {
+    level?.movingPlatform?.update();
     player.update(delta);
+    enemy.update();
     
     const cam = this.cameras.main;
-
     const vx = player.sprite.body.velocity.x;
 
     // transforme vitesse en direction fluide
