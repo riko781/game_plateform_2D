@@ -1,0 +1,253 @@
+# 🎮 PHASE 2 — VERTICAL SLICE (EXPORT DU JEU)
+
+## 🧭 Objectif de la phase
+
+Transformer le prototype de mouvement en un **mini jeu complet jouable**.
+
+On ne travaille plus le feel du moteur.
+
+On construit une boucle de jeu complète :
+
+> spawn → platforming → danger → objectif → restart
+
+---
+
+# 🎯 Résultat attendu
+
+À la fin de cette phase, le jeu doit être :
+
+* jouable du début à la fin
+* compréhensible sans explication
+* basé sur une boucle claire
+* testable comme un “vrai mini jeu”
+
+---
+
+# 🧱 STRUCTURE DU JEU
+
+Le niveau est découpé en 4 zones.
+
+---
+
+## 🟢 ZONE 1 — SPAWN (prise en main)
+
+### Objectif
+
+Apprendre le contrôle sans pression
+
+### Contenu
+
+* sol stable
+* plateformes faciles
+* aucun danger
+
+### Rôle gameplay
+
+* tester jump
+* tester move
+* rassurer le joueur
+
+---
+
+## 🟡 ZONE 2 — PLATFORMING (skill léger)
+
+### Objectif
+
+Utiliser le mouvement dans un contexte réel
+
+### Contenu
+
+* plateformes espacées
+* hauteur variable
+* plateforme mobile
+
+### Rôle gameplay
+
+* jump timing
+* dash usage
+* contrôle air
+
+---
+
+## 🔴 ZONE 3 — DANGER (pression)
+
+### Objectif
+
+Créer tension et risque
+
+### Contenu
+
+* ennemi simple (patrol ou chase)
+* ou zone mortelle
+* espace moins permissif
+
+### Rôle gameplay
+
+* punir erreurs
+* introduire stress léger
+* forcer maîtrise du mouvement
+
+---
+
+## 🏁 ZONE 4 — OBJECTIF (fin)
+
+### Objectif
+
+Donner une fin claire au niveau
+
+### Contenu
+
+* zone verte / goal
+* overlap trigger
+* feedback de victoire
+
+### Rôle gameplay
+
+* boucle complète
+* récompense du joueur
+
+---
+
+# 🔁 BOUCLE DE JEU
+
+## Flow global
+
+spawn → apprentissage → challenge → pression → objectif → restart
+
+---
+
+## Conditions de boucle
+
+* mort → restart rapide
+* victoire → restart après feedback
+
+---
+
+# 👾 ENNEMI (VERSION PHASE 2)
+
+## Objectif
+
+Créer une pression simple sans complexité système
+
+---
+
+### Comportement recommandé
+
+* patrol simple OU
+* chase léger si joueur proche
+
+Exemple logique :
+
+* distance faible → poursuit joueur
+* distance élevée → revient à patrouille
+
+---
+
+# 💀 DEATH FEEDBACK
+
+## Objectif
+
+Rendre la mort claire et lisible
+
+---
+
+### Feedback recommandé
+
+* flash rouge caméra
+* shake léger
+* freeze court
+* respawn rapide
+
+---
+
+# 🏁 WIN CONDITION
+
+## Objectif
+
+Terminer le niveau proprement
+
+---
+
+### Feedback recommandé
+
+* flash blanc
+* caméra légère pause
+* message console ou UI simple
+* restart après 1–2 secondes
+
+---
+
+# 🗺️ LEVEL DESIGN (STRUCTURE)
+
+## Progression spatiale recommandée
+
+* 0 → 300 : spawn safe
+* 300 → 700 : plateformes simples
+* 700 → 1100 : timing jump
+* 1100 → 1400 : plateforme mobile
+* 1400 → 1800 : transition danger
+* 1800 → 2200 : ennemi / pression
+* 2200 → 2800 : challenge final
+* 2800 → goal
+
+---
+
+# ⚙️ RÈGLES IMPORTANTES
+
+## ❌ INTERDIT
+
+* modifier le movement core
+* refactor FSM
+* ajouter des systèmes complexes
+* ajouter de nouvelles mécaniques majeures
+
+---
+
+## ✅ AUTORISÉ
+
+* level design
+* placement d’ennemis
+* triggers
+* feedback (FX, caméra, UI simple)
+* boucle win/lose
+
+---
+
+# 🧠 PHILOSOPHIE DE LA PHASE
+
+## On ne construit pas le moteur
+
+On construit :
+
+> des situations de gameplay
+
+---
+
+# 🎯 CRITÈRE DE SUCCÈS
+
+La phase est réussie si :
+
+* un joueur comprend le jeu sans explication
+* il peut échouer et recommencer
+* il ressent une progression dans le niveau
+* la boucle complète fonctionne
+
+---
+
+# 🚀 SORTIE DE PHASE 2
+
+Quand cette phase est terminée, tu as :
+
+* un mini jeu complet
+* une boucle jouable
+* une base de level design
+* un prototype “présentable”
+
+---
+
+# 👉 PHASE SUIVANTE (plus tard)
+
+* tuning difficulté
+* amélioration du level design
+* ajout de nouvelles mécaniques (avec précaution)
+* juice pass global
