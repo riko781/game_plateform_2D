@@ -1,3 +1,7 @@
+import { CreateLevel1 } from "./../levels/Level1";
+import { CreateLevel2 } from "./../levels/Level2";
+import { Player } from './../Player.js';
+
 export const CoreTiming = {
     movement:{
         coyote: 120, //ms
@@ -24,3 +28,28 @@ export const SPEED = 140;
 export const DASH_SPEED = 380;
 export const AIR_CONTROL_MULTIPLIER = 0.45;
 export const JUMP_CUT_MULTIPLIER = 0.35;
+
+const levels = [
+    CreateLevel1,
+    CreateLevel2,
+]
+
+export const RunMetric = {
+    deaths : 0,
+    attempts : 0,
+    levelStartTime : 0
+}
+
+export function nextLevel(scene){
+    currentLevel++;
+
+    if(currentLevel >= levels.length){
+        console.log("GAME FINISHED");
+        currentLevel = 0 ;
+    }
+
+    scene.scene.restart();
+}
+export function loadCurrentLevel(scene,player,enemy){
+    level = levels[currentLevel](scene,player,enemy);
+}
