@@ -29,27 +29,8 @@ export const DASH_SPEED = 380;
 export const AIR_CONTROL_MULTIPLIER = 0.45;
 export const JUMP_CUT_MULTIPLIER = 0.35;
 
-const levels = [
-    CreateLevel1,
-    CreateLevel2,
-]
-
 export const RunMetric = {
     deaths : 0,
     attempts : 0,
     levelStartTime : 0
-}
-
-export function nextLevel(scene){
-    currentLevel++;
-
-    if(currentLevel >= levels.length){
-        console.log("GAME FINISHED");
-        currentLevel = 0 ;
-    }
-
-    scene.scene.restart();
-}
-export function loadCurrentLevel(scene,player,enemy){
-    level = levels[currentLevel](scene,player,enemy);
 }
