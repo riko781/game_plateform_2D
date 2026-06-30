@@ -1,6 +1,7 @@
 import Phaser from "phaser";
 import { CreateLevel1 } from "./levels/Level1";
 import { CreateLevel2 } from "./levels/Level2";
+import { level , nextLevel,loadCurrentLevel} from "./levels/LevelManager.js";
 import { Enemy } from "./Enemy.js";
 import { Player} from "./Player.js";
 import { CoreTiming,
@@ -11,12 +12,7 @@ import { CoreTiming,
     DASH_SPEED,
     AIR_CONTROL_MULTIPLIER,
     JUMP_CUT_MULTIPLIER,
-    RunMetric,
-    currentLevel,
-    nextLevel,
-    loadCurrentLevel,
-    level} from "./core/GameplayConstants";
-
+    RunMetric} from "./core/GameplayConstants";
 
 const config = {
     type: Phaser.AUTO,
