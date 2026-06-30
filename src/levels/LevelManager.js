@@ -1,5 +1,5 @@
-import { CreateLevel1 } from "./levels/Level1";
-import { CreateLevel2 } from "./levels/Level2";
+import { CreateLevel1 } from "./Level1";
+import { CreateLevel2 } from "./Level2";
 
 let currentLevel = 0;
 export let level;
