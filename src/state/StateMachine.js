@@ -1,4 +1,5 @@
-import {CoreTiming,SPEED,DASH_SPEED,GRAVITY,JUMP_FORCE,JUMP_CUT_MULTIPLIER,AIR_CONTROL_MULTIPLIER,RunMetric,nextLevel} from './../core/GameplayConstants';
+import {CoreTiming,SPEED,DASH_SPEED,GRAVITY,JUMP_FORCE,JUMP_CUT_MULTIPLIER,AIR_CONTROL_MULTIPLIER,RunMetric} from './../core/GameplayConstants';
+import { nextLevel } from "./../levels/LevelManager";
 
 export class DashState {
     constructor(player){
