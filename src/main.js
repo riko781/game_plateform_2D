@@ -57,7 +57,7 @@ function create() {
 }
 
 function update(timer, delta) {
-    level?.movingPlatform?.update();
+    level?.movingPlatform?.update?.();
     player.update(delta);
     level.enemies?.forEach(enemy => enemy.update());
     level.movingPlatforms?.forEach(platform => platform.update());
