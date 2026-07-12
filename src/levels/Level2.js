@@ -9,6 +9,7 @@ export function CreateLevel2(scene,player) {
         new Enemy(scene, 750, 200 ,650, 800),
         new Enemy(scene, 850, 200 ,870, 1030)
     );
+
     const enemy = enemies[0];
     const enemy2 = enemies[1];
     //platforms
@@ -89,6 +90,9 @@ export function CreateLevel2(scene,player) {
     );
 
     return {
-        enemies
+        enemies,
+        movingPlatform: {},
+        spawn: {x: 200, y: 400},
+        goal
     }
 }
