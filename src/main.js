@@ -38,12 +38,21 @@ let player;
 let enemy;
 
 function preload() {
-    const playerPath = `${import.meta.env.BASE_URL}assets/player-Sheet.png`;
+    const basePath = `${import.meta.env.BASE_URL}assets`;
+    const playerPath = `${basePath}/player-Sheet.png`;
     this.load.spritesheet('player', playerPath, { frameWidth: 64, frameHeight: 64 });
+
+    this.load.image('tiles', `${basePath}/tiles/tilemap_packed.png`);
+    this.load.image('tile_0004', `${basePath}/tiles/tile_0004.png`);
+    this.load.image('tile_0013', `${basePath}/tiles/tile_0013.png`);
+    this.load.image('tile_0012', `${basePath}/tiles/tile_0012.png`);
+    this.load.image('tile_0021', `${basePath}/tiles/tile_0021.png`);
+    this.load.tilemapTiledJSON('level1', `${basePath}/maps/level1.json`);
 }
 
 function create() {
     player = new Player(this,nextLevel);
+    player.sprite.setDepth(10);
     loadCurrentLevel(this,player,level);
 
     if(RunMetric.levelStartTime === 0){
@@ -52,8 +61,8 @@ function create() {
 
     const camera = this.cameras.main;
 
-    camera.setBounds(0, 0, 3000, 600);
-    camera.startFollow(player.sprite, true, 0.1, 0.1);
+    camera.setBounds(0, 0, level.map.widthInPixels, level.map.heightInPixels);
+    camera.startFollow(player.sprite, true, 0.1,  0.1);
 }
 
 function update(timer, delta) {
