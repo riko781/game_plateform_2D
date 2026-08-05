@@ -89,6 +89,7 @@ export function CreateLevel3(scene,player) {
     );
 
     return {
+        map: {},
         enemies,
         movingPlatform: {},
         spawn: {x: 200, y: 400},
