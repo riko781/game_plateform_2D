@@ -4,38 +4,48 @@ import { Enemy } from '../Enemy';
 export function CreateLevel1(scene,player) {
     //enemy
     const enemies = [];
+    const map = scene.make.tilemap({ key: 'level1' });
+    const tileset = map.addTilesetImage('tileset-tiles', 'tiles');
+    const tile_0004 = map.addTilesetImage('tile_0004', 'tile_0004');
+    const tile_0012 = map.addTilesetImage('tile_0012', 'tile_0012');
+    const tile_0013 = map.addTilesetImage('tile_0013', 'tile_0013');
+    const tile_0021 = map.addTilesetImage('tile_0021', 'tile_0021');
+    const background  = map.createLayer('background', [tile_0012,tile_0004,tile_0013,tile_0021], 0, 0);
+    const map_layer_1  = map.createLayer('Tile Layer 1', [tileset], 0, 0);
 
+    scene.physics.world.setBounds(
+        0,
+        0,
+        map.widthInPixels,
+        map.heightInPixels
+    );
+
+    scene.cameras.main.setBounds(
+        0,
+        0,
+        map.widthInPixels,
+        map.heightInPixels
+    );
+
+    map_layer_1.setCollisionByProperty({ collides: true });
+    
     enemies.push(
         new Enemy(scene, 750, 200 ,650, 800)
     );
+
     const enemy = enemies[0];
     //platforms
-    const rectangle = scene.add.rectangle(200, 0, 10, 10, 0x00ff00);
+    const rectangle = scene.add.rectangle(200, 0, 10, 10, 0x632800);
     const goal = scene.add.rectangle(1080,450,60,300,0x00ff00);
-    const solPlatform = scene.add.rectangle(175, 600, 348, 100, 0x632800);
-    const exitPlatform = scene.add.rectangle(1650,430,120,20,0x632800);
-    
-    const plateForm_1 = scene.add.rectangle(449, 550, 200, 100, 0x632800);
-    const enemyPlatform = scene.add.rectangle(649, 525, 400, 150, 0x632800);
-    const plateForm_3 = scene.add.rectangle(849, 550, 400, 100, 0x632800);
     
     //physics
     scene.physics.add.existing(rectangle);
-    scene.physics.add.existing(enemyPlatform,true);
-    scene.physics.add.existing(exitPlatform,true);
     scene.physics.add.existing(goal,true);
-    scene.physics.add.existing(solPlatform,true);
-    scene.physics.add.existing(plateForm_1,true);
-    scene.physics.add.existing(plateForm_3,true);
-
+   
     //colliders  
-    scene.physics.add.collider(rectangle,solPlatform);
-    scene.physics.add.collider(player.sprite,exitPlatform);
-    scene.physics.add.collider(player.sprite,solPlatform);
-    scene.physics.add.collider(player.sprite,plateForm_1);
-    scene.physics.add.collider(player.sprite,plateForm_3);
-    scene.physics.add.collider(player.sprite,enemyPlatform);
-    scene.physics.add.collider(enemy.sprite,enemyPlatform);
+    scene.physics.add.collider(rectangle,map_layer_1);
+    scene.physics.add.collider(player.sprite,map_layer_1);
+    scene.physics.add.collider(enemy.sprite,map_layer_1);
 
     //overlap
     scene.physics.add.overlap(
@@ -67,6 +77,7 @@ export function CreateLevel1(scene,player) {
     );
 
     return {
+        map,
         enemies,
         movingPlatform: {},
         spawn: {x: 200, y: 400},
