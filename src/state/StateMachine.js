@@ -155,13 +155,6 @@ export class FallState{
     }
 
     update(player, delta) {
-        const FALL_MULTIPLIER = 1.35;
-
-        const isFalling = player.sprite.body.velocity.y > 0;
-
-        if (isFalling) {
-            player.sprite.body.velocity.y += GRAVITY * 0.015 * (delta / 16.66) * (FALL_MULTIPLIER - 1);
-        }
 
         //activation du dash
         if(player.dashJustDown && (player.lastDirection !== undefined || player.direction !== 0)){
