@@ -48,7 +48,10 @@ export class Player{
         //game objects
         
         this.sprite = scene.physics.add.sprite(100, 100, 'player');
-        this.sprite.body.setSize(20, 30);
+        this.sprite.setOrigin(0.5, 46 / 64);
+        this.sprite.body.setSize(32, 48);
+
+        this.sprite.body.setOffset(16,-1);
 
         //input
         const cursors = scene.input.keyboard.createCursorKeys();
@@ -147,10 +150,10 @@ export class Player{
         this.wasGrounded = this.sprite.body.blocked.down;
 
         //debug
-        this.updateDebugText(delta);
+        //this.updateDebugText(delta);
         this.debugGraphics.clear();
-        this.debugGraphics.lineStyle(2, this.isGrounded ? 0x00ff00 : 0xff0000);
-        this.debugGraphics.strokeRect(this.sprite.body.x, this.sprite.body.y, this.sprite.body.width, this.sprite.body.height);
+       // this.debugGraphics.lineStyle(2, this.isGrounded ? 0x00ff00 : 0xff0000);
+       // this.debugGraphics.strokeRect(this.sprite.body.x, this.sprite.body.y, this.sprite.body.width, this.sprite.body.height);
 
         if (this.landingFlashTimer > 0) {
             const progress =
@@ -158,11 +161,11 @@ export class Player{
 
             const radius = 20 * (1 - progress);
 
-            this.debugGraphics.lineStyle(
+            /*this.debugGraphics.lineStyle(
                 2,
                 0xffff00,
                 progress
-            );
+            );*/
 
             this.debugGraphics.strokeCircle(
                 this.sprite.body.center.x,
@@ -173,8 +176,9 @@ export class Player{
 
         const centerX = this.sprite.body.center.x;
         const centerY = this.sprite.body.center.y;
-        this.debugGraphics.lineStyle(2, 0x00ffff);
+        //this.debugGraphics.lineStyle(2, 0x00ffff);
         this.debugGraphics.lineBetween(centerX, centerY, centerX + this.sprite.body.velocity.x * 0.2, centerY + this.sprite.body.velocity.y * 0.2);
+        
     }
 
     readInput(){
