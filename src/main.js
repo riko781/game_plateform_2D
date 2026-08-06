@@ -51,6 +51,7 @@ function preload() {
 }
 
 function create() {
+    this.physics.world.createDebugGraphic();
     player = new Player(this,nextLevel);
     player.sprite.setDepth(10);
     loadCurrentLevel(this,player,level);
