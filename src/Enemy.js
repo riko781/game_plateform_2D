@@ -10,7 +10,7 @@ export class Enemy{
     animationTimer = 0;
     numberOfFrames;
 
-    constructor(scene, x, y,leftBound, rightBound,frame = 15,numberOfFrames = 2) {
+    constructor(scene, x, y,leftBound, rightBound,frame = 0,numberOfFrames = 2) {
         this.scene = scene;
         this.frame = frame;
         this.walkFrame = frame;
