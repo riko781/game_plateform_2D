@@ -12,6 +12,7 @@ import { CoreTiming,
     DASH_SPEED,
     AIR_CONTROL_MULTIPLIER,
     JUMP_CUT_MULTIPLIER,
+    TILEBIAS,
     RunMetric} from "./core/GameplayConstants";
 
 const config = {
@@ -24,6 +25,8 @@ const config = {
             gravity: {
               y: GRAVITY
             },
+            tileBias: TILEBIAS,
+            debug: true
         }
     },
     scene: {
