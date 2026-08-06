@@ -43,7 +43,9 @@ let enemy;
 function preload() {
     const basePath = `${import.meta.env.BASE_URL}assets`;
     const playerPath = `${basePath}/player-Sheet.png`;
+    const enemyPath = `${basePath}/enemy-Sheet.png`;
     this.load.spritesheet('player', playerPath, { frameWidth: 64, frameHeight: 64 });
+    this.load.spritesheet('enemy', enemyPath, { frameWidth: 24, frameHeight: 24 });
 
     this.load.image('tiles', `${basePath}/tiles/tilemap_packed.png`);
     this.load.image('tile_0004', `${basePath}/tiles/tile_0004.png`);
@@ -72,7 +74,7 @@ function create() {
 function update(timer, delta) {
     level?.movingPlatform?.update?.();
     player.update(delta);
-    level.enemies?.forEach(enemy => enemy.update());
+    level.enemies?.forEach(enemy => enemy.update(delta));
     level.movingPlatforms?.forEach(platform => platform.update());
 
     const cam = this.cameras.main;
