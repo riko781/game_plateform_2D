@@ -30,7 +30,7 @@ export function CreateLevel1(scene,player) {
     map_layer_1.setCollisionByProperty({ collides: true });
     
     enemies.push(
-        new Enemy(scene, 750, 200 ,650, 800)
+        new Enemy(scene, 1250, 200 ,800, 1200,14,2)
     );
 
     const enemy = enemies[0];
