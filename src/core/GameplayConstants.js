@@ -28,6 +28,7 @@ export const SPEED = 140;
 export const DASH_SPEED = 380;
 export const AIR_CONTROL_MULTIPLIER = 0.45;
 export const JUMP_CUT_MULTIPLIER = 0.35;
+export const TILEBIAS = 23; // valeur de tileBias pour la physique arcade de Phaser, utilisée pour améliorer la détection des collisions avec les tiles
 
 export const RunMetric = {
     deaths : 0,
