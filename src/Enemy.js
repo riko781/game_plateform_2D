@@ -5,10 +5,20 @@ export class Enemy{
     speed;
     leftBound;
     rightBound;
+    walkFrame = 0;
+    frame;
+    animationTimer = 0;
+    numberOfFrames;
 
-    constructor(scene, x, y,leftBound, rightBound) {
+    constructor(scene, x, y,leftBound, rightBound,frame = 15,numberOfFrames = 2) {
         this.scene = scene;
-        this.sprite = scene.add.rectangle(x, y, 40, 40, 0xff0000);
+        this.frame = frame;
+        this.walkFrame = frame;
+        this.numberOfFrames = numberOfFrames - 1;
+
+        this.sprite = scene.physics.add.sprite(x, y, 'enemy', this.frame);
+        this.sprite.setOrigin(0.5, 1);
+
         this.leftBound = leftBound;
         this.rightBound = rightBound;
 
@@ -19,7 +29,29 @@ export class Enemy{
         this.speed = 50;
     }
 
-    update(){
+    updateAnimation(delta){
+    
+        this.animationTimer += delta;
+
+        while(this.animationTimer >= 300){
+            this.animationTimer -= 300;
+
+            if(this.frame == this.walkFrame ){
+                this.walkFrame++;
+            }else if(this.walkFrame < this.frame + this.numberOfFrames){
+                this.walkFrame++;
+            }else if(this.walkFrame == this.frame + this.numberOfFrames){
+                this.walkFrame = this.frame;
+            }else{
+                this.walkFrame--;
+            }
+
+            this.sprite.setFrame(this.walkFrame);
+        }
+
+    }
+
+    update(delta){
         
         if(this.sprite.body === undefined)
             return false;
@@ -34,6 +66,8 @@ export class Enemy{
         if(this.sprite.x > this.rightBound){
             this.direction = -1;
         }
+
+        this.updateAnimation(delta);
     }
 
     kill (){
