@@ -49,9 +49,10 @@ export class Player{
         
         this.sprite = scene.physics.add.sprite(100, 100, 'player');
         this.sprite.setOrigin(0.5, 46 / 64);
-        this.sprite.body.setSize(32, 48);
 
-        this.sprite.body.setOffset(16,-1);
+        //hitbox colision autour du player
+        this.sprite.body.setSize(18, 32);
+        this.sprite.body.setOffset(22,15);
 
         //input
         const cursors = scene.input.keyboard.createCursorKeys();
@@ -151,9 +152,9 @@ export class Player{
 
         //debug
         //this.updateDebugText(delta);
-        this.debugGraphics.clear();
-       // this.debugGraphics.lineStyle(2, this.isGrounded ? 0x00ff00 : 0xff0000);
-       // this.debugGraphics.strokeRect(this.sprite.body.x, this.sprite.body.y, this.sprite.body.width, this.sprite.body.height);
+       // this.debugGraphics.clear();
+        this.debugGraphics.lineStyle(2, this.isGrounded ? 0x00ff00 : 0xff0000);
+        this.debugGraphics.strokeRect(this.sprite.body.x, this.sprite.body.y, this.sprite.body.width, this.sprite.body.height);
 
         if (this.landingFlashTimer > 0) {
             const progress =
