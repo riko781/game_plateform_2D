@@ -72,11 +72,11 @@ function create() {
 }
 
 function update(timer, delta) {
-    level?.movingPlatform?.update?.();
     player.update(delta);
-    level.enemies?.forEach(enemy => enemy.update(delta));
-    level.movingPlatforms?.forEach(platform => platform.update());
-
+    level?.enemies?.forEach(enemy => enemy.update(delta));
+    level?.movingPlatforms?.forEach(platform => platform.update());
+    level?.leviers?.forEach(levier => levier.update());
+    
     const cam = this.cameras.main;
     const vx = player.sprite.body.velocity.x;
 
