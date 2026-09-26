@@ -22,6 +22,6 @@ export function nextLevel(scene){
     scene.scene.restart();
 }
 
-export function loadCurrentLevel(scene,player,enemy){
-    level = levels[currentLevel](scene,player,enemy);
+export function loadCurrentLevel(scene,player){
+    level = levels[currentLevel](scene,player);
 }
