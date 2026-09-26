@@ -46,6 +46,7 @@ function preload() {
     const enemyPath = `${basePath}/enemy-Sheet.png`;
     this.load.spritesheet('player', playerPath, { frameWidth: 64, frameHeight: 64 });
     this.load.spritesheet('enemy', enemyPath, { frameWidth: 25, frameHeight: 25 });
+    this.load.spritesheet('tilesSheet', `${basePath}/tiles/tilemap_packed.png`, { frameWidth: 18, frameHeight: 18 });
 
     this.load.image('tiles', `${basePath}/tiles/tilemap_packed.png`);
     this.load.image('tile_0004', `${basePath}/tiles/tile_0004.png`);
@@ -75,8 +76,8 @@ function update(timer, delta) {
     player.update(delta);
     level?.enemies?.forEach(enemy => enemy.update(delta));
     level?.movingPlatforms?.forEach(platform => platform.update());
-    level?.leviers?.forEach(levier => levier.update());
-    
+    level?.leviers?.forEach(levier => levier.update(player));
+
     const cam = this.cameras.main;
     const vx = player.sprite.body.velocity.x;
 
