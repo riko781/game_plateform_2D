@@ -1,5 +1,6 @@
 import { JUMP_FORCE } from '../core/GameplayConstants.js';
 import { Enemy } from '../Enemy';
+import { Levier } from '../levier';
 
 export function CreateLevel1(scene,player) {
     //enemy
@@ -12,7 +13,14 @@ export function CreateLevel1(scene,player) {
     const tile_0021 = map.addTilesetImage('tile_0021', 'tile_0021');
     const background  = map.createLayer('background', [tile_0012,tile_0004,tile_0013,tile_0021], 0, 0);
     const map_layer_1  = map.createLayer('Tile Layer 1', [tileset], 0, 0);
-
+    const levelObjectLayer = map.getObjectLayer('Interactive').objects;
+    
+    const leviers = levelObjectLayer
+    .filter(object => object.name === 'levier')
+    .map(object =>  new Levier(scene, object));
+    
+    console.log(leviers);
+    
     scene.physics.world.setBounds(
         0,
         0,
@@ -77,6 +85,7 @@ export function CreateLevel1(scene,player) {
     );
 
     return {
+        leviers,
         map,
         enemies,
         movingPlatform: {},
