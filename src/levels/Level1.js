@@ -1,6 +1,7 @@
 import { JUMP_FORCE } from '../core/GameplayConstants.js';
 import { Enemy } from '../Enemy';
 import { Levier } from '../levier';
+import { Door } from '../door';
 
 export function CreateLevel1(scene,player) {
     //enemy
@@ -14,12 +15,25 @@ export function CreateLevel1(scene,player) {
     const background  = map.createLayer('background', [tile_0012,tile_0004,tile_0013,tile_0021], 0, 0);
     const map_layer_1  = map.createLayer('Tile Layer 1', [tileset], 0, 0);
     const levelObjectLayer = map.getObjectLayer('Interactive').objects;
+    const doors = new Map();
+    const leviers = [];
     
-    const leviers = levelObjectLayer
-    .filter(object => object.name === 'levier')
-    .map(object =>  new Levier(scene, object));
-    
-    console.log(leviers);
+    levelObjectLayer.forEach(object => {
+        if (object.name === 'Door') {
+            const id = object.properties.find(property => property.name === 'id')?.value;
+            const door = new Door(scene, object, map_layer_1, tileset, 200);
+            doors.set(id, door);
+        }
+    });
+
+     levelObjectLayer.forEach(object => {
+        if (object.name === 'levier') {
+            const id = object.properties.find(property => property.name === 'id')?.value;
+            const door = doors.get(id);
+            const levier = new Levier(scene, object, door);
+            leviers.push(levier);
+        }
+    });
     
     scene.physics.world.setBounds(
         0,
@@ -85,6 +99,7 @@ export function CreateLevel1(scene,player) {
     );
 
     return {
+        doors,
         leviers,
         map,
         enemies,

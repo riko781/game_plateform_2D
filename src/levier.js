@@ -8,8 +8,8 @@ export class Levier {
     height;
     activated = false;
     sprite;
-
-    constructor(scene,levelObjectLayer) {
+    door; 
+    constructor(scene,levelObjectLayer,door) {
         this.scene = scene;
         this.levelObjectLayer = levelObjectLayer;
         this.id = levelObjectLayer.id;
@@ -19,6 +19,7 @@ export class Levier {
         this.width = this.levelObjectLayer.width;
         this.height = this.levelObjectLayer.height;
         this.sprite = this.scene.add.sprite(levelObjectLayer.x, levelObjectLayer.y,'tilesSheet',64);
+        this.door = door;
 
           console.log(
             `Levier ${this.id}`,
@@ -46,6 +47,12 @@ export class Levier {
         console.log(`Levier ${this.id} activated`);
         console.log('Levier sprite created:', this.sprite);
         this.sprite.setFrame(66);
+
+        //open the door
+        if(this.door) {
+            console.log(`Opening door  ${this.door}`);
+            this.door.open();
+        }
     }
 
     update(player) {
