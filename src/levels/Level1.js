@@ -12,12 +12,14 @@ export function CreateLevel1(scene,player) {
     const tile_0012 = map.addTilesetImage('tile_0012', 'tile_0012');
     const tile_0013 = map.addTilesetImage('tile_0013', 'tile_0013');
     const tile_0021 = map.addTilesetImage('tile_0021', 'tile_0021');
-    const background  = map.createLayer('background', [tile_0012,tile_0004,tile_0013,tile_0021], 0, 0);
+    map.createLayer('background', [tile_0012,tile_0004,tile_0013,tile_0021], 0, 0);
     const map_layer_1  = map.createLayer('Tile Layer 1', [tileset], 0, 0);
     const levelObjectLayer = map.getObjectLayer('Interactive').objects;
     const doors = new Map();
     const leviers = [];
     
+    map_layer_1.setCollisionByProperty({ collides: true });
+
     levelObjectLayer.forEach(object => {
         if (object.name === 'Door') {
             const id = object.properties.find(property => property.name === 'id')?.value;
@@ -48,8 +50,6 @@ export function CreateLevel1(scene,player) {
         map.widthInPixels,
         map.heightInPixels
     );
-
-    map_layer_1.setCollisionByProperty({ collides: true });
     
     enemies.push(
         new Enemy(scene, 1250, 200 ,800, 1200,14,2)
