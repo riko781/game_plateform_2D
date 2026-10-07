@@ -42,16 +42,20 @@ export class Levier {
         if (this.activated) {
             return;
         }
+        
         this.activated = true;
-
-        console.log(`Levier ${this.id} activated`);
-        console.log('Levier sprite created:', this.sprite);
         this.sprite.setFrame(66);
 
         //open the door
         if(this.door) {
             console.log(`Opening door  ${this.door}`);
             this.door.open();
+
+            if(this.door.isOpen) {
+                this.door.enableCollisions();
+            }else{
+                this.door.disableCollisions();
+            }
         }
     }
 
