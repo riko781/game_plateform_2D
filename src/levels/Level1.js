@@ -18,6 +18,8 @@ export function CreateLevel1(scene,player) {
     const doors = new Map();
     const leviers = [];
     
+    console.log(map_layer_1);
+
     map_layer_1.setCollisionByProperty({ collides: true });
 
     levelObjectLayer.forEach(object => {
@@ -88,16 +90,7 @@ export function CreateLevel1(scene,player) {
             }
         }
     );
-
-    scene.physics.add.overlap(
-        player.sprite,
-        goal,
-        () => {
-            console.log("YOU WIN");
-            player.win();
-        }
-    );
-
+    
     return {
         doors,
         leviers,
@@ -105,6 +98,39 @@ export function CreateLevel1(scene,player) {
         enemies,
         movingPlatform: {},
         spawn: {x: 200, y: 400},
-        goal
+        goal,
+        checkGoal : () => checkGoal(map, player, map_layer_1)
     }
+}
+
+
+function checkGoal(map,player,mapLayer) {
+    const body = player.sprite.body;
+
+    const startX = mapLayer.worldToTileX(body.x);
+    const endX = mapLayer.worldToTileX(body.right);
+    const startY = mapLayer.worldToTileY(body.y);
+    const endY = mapLayer.worldToTileY(body.bottom);
+
+    for (let y = startY; y <= endY; y++) {
+        for (let x = startX; x <= endX; x++) {
+            // Ignore les coordonnées hors de la carte
+            if (
+                x < 0 || y < 0 ||
+                x >= map.width ||
+                y >= map.height
+            ) {
+                continue;
+            }
+
+            const tile = mapLayer.getTileAt(x, y);
+
+            if (tile?.properties?.goal === true) {
+                console.log('🎉 Niveau terminé !');
+                player.win();
+                return;
+            }
+        }
+    }
+
 }
