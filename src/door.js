@@ -25,8 +25,26 @@ export class Door{
             levelObjectLayer.properties
                 .find(property => property.name === 'direction')?.value;
         
-        this.distance = distance;
+        switch (this.orientation) {
+            case 'up':
+            case 'down':
+                this.distance = levelObjectLayer.height;
+                break;
+            case 'left':
+            case 'right':
+                this.distance = levelObjectLayer.width;
+                break;
+            default:
+                console.warn(
+                    `Direction inconnue pour la porte ${this.id}:`,
+                    this.orientation
+                );
+                break;
+        }
 
+        //console.log(levelObjectLayer.width);
+        console.log(distance);
+        console.log(this.distance);
         this.id =
             levelObjectLayer.properties
                 .find(property => property.name === 'id')?.value;
@@ -40,12 +58,48 @@ export class Door{
 
         if(this.isOpen){
             console.log(`Door ${this.id} is initially open`);
+            //pasde collisions car la porte est ouverte
             this.disableCollisions();
+            //la porte commence  hors de la position initiale
+            this.setInitialOpenPosition();
+
         }else{
             this.enableCollisions();
         }
     }
     
+    setInitialOpenPosition() {
+
+        switch (this.orientation) {
+
+            case 'up':
+                // La porte arrivera par le bas
+                this.container.y = this.distance;
+                break;
+
+            case 'down':
+                // La porte arrivera par le haut
+                this.container.y = -this.distance;
+                break;
+
+            case 'left':
+                // La porte arrivera par la droite
+                this.container.x = this.distance;
+                break;
+
+            case 'right':
+                // La porte arrivera par la gauche
+                this.container.x = -this.distance;
+                break;
+
+            default:
+                console.warn(
+                    `Direction inconnue pour la porte ${this.id}:`,
+                    this.orientation
+                );
+                break;
+        }
+    }
     createDoorSprite() {
         const tileSize = 18;
         const startX = Math.max(0, Math.floor(this.levelObjectLayer.x / tileSize));
