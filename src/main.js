@@ -39,6 +39,7 @@ const config = {
 new Phaser.Game(config);
 let player;
 let enemy;
+let currentLevel;
 
 function preload() {
     const basePath = `${import.meta.env.BASE_URL}assets`;
@@ -60,7 +61,7 @@ function create() {
     this.physics.world.createDebugGraphic();
     player = new Player(this,nextLevel);
     player.sprite.setDepth(10);
-    loadCurrentLevel(this,player,level);
+    currentLevel = loadCurrentLevel(this,player,level);
 
     if(RunMetric.levelStartTime === 0){
         RunMetric.levelStartTime = performance.now();
@@ -68,7 +69,7 @@ function create() {
 
     const camera = this.cameras.main;
 
-    camera.setBounds(0, 0, level.map.widthInPixels, level.map.heightInPixels);
+    camera.setBounds(0, 0, level.map?.widthInPixels, level.map?.heightInPixels);
     camera.startFollow(player.sprite, true, 0.1,  0.1);
 }
 
@@ -77,6 +78,7 @@ function update(timer, delta) {
     level?.enemies?.forEach(enemy => enemy.update(delta));
     level?.movingPlatforms?.forEach(platform => platform.update());
     level?.leviers?.forEach(levier => levier.update(player));
+    currentLevel?.checkGoal();
 
     const cam = this.cameras.main;
     const vx = player.sprite.body.velocity.x;
