@@ -1,8 +1,13 @@
 import { JUMP_FORCE } from '../core/GameplayConstants.js';
 import { Enemy } from '../Enemy';
+import { Door } from '../door';
+import { Levier } from '../levier';
 
 export function CreateLevel2(scene,player) {
     //enemy
+    let doors = new Map();
+    let leviers = [];
+    let map;
     const enemies = [];
 
     enemies.push(
@@ -90,10 +95,18 @@ export function CreateLevel2(scene,player) {
     );
 
     return {
-        map: {},
+        doors,
+        leviers,
+        map,
         enemies,
         movingPlatform: {},
         spawn: {x: 200, y: 400},
-        goal
+        goal,
+        checkGoal : () => checkGoal()
     }
+}
+
+function checkGoal() {
+  
+
 }
