@@ -17,8 +17,6 @@ export function CreateLevel1(scene,player) {
     const levelObjectLayer = map.getObjectLayer('Interactive').objects;
     const doors = new Map();
     const leviers = [];
-    
-    console.log(map_layer_1);
 
     map_layer_1.setCollisionByProperty({ collides: true });
 
