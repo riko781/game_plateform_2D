@@ -23,5 +23,5 @@ export function nextLevel(scene){
 }
 
 export function loadCurrentLevel(scene,player){
-    level = levels[currentLevel](scene,player);
+    return level = levels[currentLevel](scene,player);
 }
